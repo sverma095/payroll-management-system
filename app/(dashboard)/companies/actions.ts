@@ -3,10 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-
-const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
-const TAN_REGEX = /^[A-Z]{4}[0-9]{5}[A-Z]$/;
-const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+import { PAN_REGEX, TAN_REGEX, GSTIN_REGEX } from "@/lib/validators/india";
 
 const companySchema = z.object({
   company_name: z.string().min(2, "Company name is required"),
