@@ -22,13 +22,20 @@ BRD → PRD → SRS → Database Design → UI/UX Spec → Reports Catalogue →
 - **Module 1 (Company Management)** end-to-end: list + create company, PAN
   format validation, duplicate-PAN restriction, audit log entry — matching
   the SRS acceptance criteria for this module.
-- Dashboard shell with nav for all Phase 1 modules (pages are stubs until
-  built).
+- **Organization setup** (branches, departments, designations) — required
+  reference data for Employee Management.
+- **Module 2 (Employee Management)** end-to-end: employee master with
+  identity/assignment/compliance/bank sections, unique employee-code check,
+  PAN format check, Aadhaar Verhoeff checksum validation, IFSC format check,
+  audit log entry, and trigram-indexed search by name/code/PAN
+  (`0003_search_indexes.sql`) to satisfy the "searchable within 2 seconds"
+  acceptance criterion.
+- Dashboard shell with nav for all Phase 1 modules (remaining pages are
+  stubs until built).
 
-**Not started yet** — everything else in Phase 1 (Employee Management,
-Salary Structure Engine, Formula Engine, Attendance, Leave, Payroll
-Processing, PF/ESI/PT/LWF/TDS, Payslip, ESS, F&F), then Phases 2–4 per the
-Implementation Package.
+**Not started yet** — Salary Structure Designer, Formula Engine, Attendance,
+Leave, Payroll Processing, PF/ESI/PT/LWF/TDS, Payslip, ESS, F&F, then
+Phases 2–4 per the Implementation Package.
 
 ## Local setup
 
