@@ -77,17 +77,34 @@ BRD → PRD → SRS → Database Design → UI/UX Spec → Reports Catalogue →
   estimated TDS (`lib/payroll/tds-estimator.ts`, new-regime FY 2025-26
   slabs, clearly flagged as an estimate) only if no TDS component exists.
   Draft → Processed → Approved → Locked status flow, bank-transfer-register
-  CSV export, and a payslip view per employee. Not yet exercised against
-  real seeded data end-to-end (needs a signed-up user + test company to do
-  that through the UI) — verified via unit tests on the pure calculation
-  functions and a clean type-check/build.
+  CSV export, and a payslip view per employee. Verified end-to-end against
+  seeded demo data, not just unit tests (see Demo account below).
+- **Module 12 (Full & Final Settlement)**: `lib/payroll/full-and-final.ts`
+  computes gratuity per the Payment of Gratuity Act (15 days' Basic per
+  completed year, service of 6+ months rounds up, 5-year eligibility
+  threshold), leave encashment (HR-entered unused days × Basic/26 — no
+  running leave-balance ledger exists yet to derive this automatically),
+  prorated final-month salary, and nets out any outstanding loan balance +
+  notice-pay recovery. Initiating a settlement marks the employee
+  `relieved`; approving marks them `ff_completed`. Verified against two
+  hand-checked cases (5+ years tenure with gratuity, <5 years without).
+- **Fixed a real production bug**: the auth middleware was dropping
+  refreshed Supabase session cookies whenever it issued a redirect, which
+  caused a login redirect loop. Cookies are now copied onto every response
+  path, including redirects — this is a documented Next.js + Supabase SSR
+  gotcha, not something specific to this app.
 - Dashboard shell with nav for all Phase 1 modules (remaining pages are
   stubs until built).
 
 **Not started yet** — PF/ESI/PT/LWF/TDS as dedicated *reporting* modules
 (challans, ECR, Form 16 — Module 6 already does the calculation side),
-Employee Self-Service, Full & Final Settlement, then Phases 2–4 per the
-Implementation Package.
+Employee Self-Service, then Phases 2–4 per the Implementation Package.
+
+**Demo account** (seeded test tenant/company/employees/structure/attendance
+— see the live app):
+```
+demo@payroll-os.local / Demo@12345
+```
 
 ## Local setup
 
