@@ -12,14 +12,21 @@ BRD → PRD → SRS → Database Design → UI/UX Spec → Reports Catalogue →
 ## Status
 
 **Live infrastructure**
+- GitHub: **[sverma095/payroll-management-system](https://github.com/sverma095/payroll-management-system)** — pushed and up to date.
 - Supabase project **`payroll-management-system`** created (region `ap-south-1`,
-  ref `pmssjdauwuutwuxrhqmz`) — all 4 migrations + seed applied, security
+  ref `pmssjdauwuutwuxrhqmz`) — all 5 migrations + seed applied, security
   advisor clean except the 3 expected `authenticated`-role warnings on the
   RLS helper functions (required for row-level security to evaluate; see
   `0004_security_hardening.sql` for what was already locked down).
-- Vercel: not connected yet.
-- GitHub: not connected yet — no GitHub connector available, so this repo
-  is local-only until you provide a repo URL + token or push it yourself.
+- Vercel: **not connected yet** — the Vercel MCP connector available here
+  only supports monitoring existing projects (deployments, logs, docs
+  search), not creating one or running `vercel deploy`, and my sandbox's
+  network doesn't reach vercel.com. One-time manual step needed:
+  1. [vercel.com/new](https://vercel.com/new) → **Import Git Repository** → `sverma095/payroll-management-system`
+  2. Add env vars: `NEXT_PUBLIC_SUPABASE_URL=https://pmssjdauwuutwuxrhqmz.supabase.co`
+     and `NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_puVSHuv3RyyYgpaoq7kPWw_M7Pa3Oof`
+     (both are public/publishable-safe values)
+  3. Deploy — every push to `main` redeploys automatically after that.
 
 **Done**
 - Full schema migration (`supabase/migrations/0001_init_schema.sql`) — 28 tables
@@ -57,11 +64,30 @@ BRD → PRD → SRS → Database Design → UI/UX Spec → Reports Catalogue →
   half-day credit, and approved leave, computed live per employee per
   month. Holiday-calendar and sandwich-leave rules aren't built yet (every
   non-weekly-off day currently counts as a working day).
+- **Module 6 (Payroll Processing)**: the formula engine now supports
+  comparisons (`>`,`<`,`>=`,`<=`,`==`,`!=`) and `IF()`, so slab-based
+  components (PT, custom TDS) can be defined entirely in the Salary
+  Structure UI — no developer needed. Added the schema piece the original
+  design doc was missing: `employee_salary_assignments` (links an employee
+  to a structure + monthly CTC — payroll has no input without this).
+  `lib/payroll/process.ts` runs the whole pipeline: validates PAN/bank/UAN/
+  duplicate-UAN, prorates gross by attendance LOP, runs the formula engine
+  per employee, pulls PF/ESI/PT/LWF from whichever components the company
+  defined (0 if undefined, not a guessed number), falls back to an
+  estimated TDS (`lib/payroll/tds-estimator.ts`, new-regime FY 2025-26
+  slabs, clearly flagged as an estimate) only if no TDS component exists.
+  Draft → Processed → Approved → Locked status flow, bank-transfer-register
+  CSV export, and a payslip view per employee. Not yet exercised against
+  real seeded data end-to-end (needs a signed-up user + test company to do
+  that through the UI) — verified via unit tests on the pure calculation
+  functions and a clean type-check/build.
 - Dashboard shell with nav for all Phase 1 modules (remaining pages are
   stubs until built).
 
-**Not started yet** — Payroll Processing, PF/ESI/PT/LWF/TDS, Payslip, ESS,
-F&F, then Phases 2–4 per the Implementation Package.
+**Not started yet** — PF/ESI/PT/LWF/TDS as dedicated *reporting* modules
+(challans, ECR, Form 16 — Module 6 already does the calculation side),
+Employee Self-Service, Full & Final Settlement, then Phases 2–4 per the
+Implementation Package.
 
 ## Local setup
 
