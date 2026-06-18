@@ -13,9 +13,17 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
+          // Keep request and response cookie jars in sync so a token
+          // refreshed mid-request is visible for the rest of this
+          // invocation, then re-create `response` from the updated
+          // request so a later redirect (below) doesn't drop it.
+          request.cookies.set(name, value);
+          response = NextResponse.next({ request });
           response.cookies.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
+          request.cookies.set(name, "");
+          response = NextResponse.next({ request });
           response.cookies.set({ name, value: "", ...options });
         }
       }
@@ -28,12 +36,15 @@ export async function middleware(request: NextRequest) {
   const isPublicAsset = request.nextUrl.pathname.startsWith("/_next");
 
   if (!user && !isAuthRoute && !isPublicAsset) {
-    const redirectUrl = new URL("/login", request.url);
-    return NextResponse.redirect(redirectUrl);
+    const redirectResponse = NextResponse.redirect(new URL("/login", request.url));
+    response.cookies.getAll().forEach((c) => redirectResponse.cookies.set(c));
+    return redirectResponse;
   }
 
   if (user && isAuthRoute) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const redirectResponse = NextResponse.redirect(new URL("/dashboard", request.url));
+    response.cookies.getAll().forEach((c) => redirectResponse.cookies.set(c));
+    return redirectResponse;
   }
 
   return response;
