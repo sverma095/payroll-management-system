@@ -11,6 +11,16 @@ BRD → PRD → SRS → Database Design → UI/UX Spec → Reports Catalogue →
 
 ## Status
 
+**Live infrastructure**
+- Supabase project **`payroll-management-system`** created (region `ap-south-1`,
+  ref `pmssjdauwuutwuxrhqmz`) — all 4 migrations + seed applied, security
+  advisor clean except the 3 expected `authenticated`-role warnings on the
+  RLS helper functions (required for row-level security to evaluate; see
+  `0004_security_hardening.sql` for what was already locked down).
+- Vercel: not connected yet.
+- GitHub: not connected yet — no GitHub connector available, so this repo
+  is local-only until you provide a repo URL + token or push it yourself.
+
 **Done**
 - Full schema migration (`supabase/migrations/0001_init_schema.sql`) — 28 tables
   from the Database Design Document, plus `app_users` to link Supabase auth to
