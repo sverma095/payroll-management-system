@@ -39,12 +39,19 @@ BRD → PRD → SRS → Database Design → UI/UX Spec → Reports Catalogue →
   references at validation time — no developer needed to change a formula.
   A live "test calculation" panel on the structure page runs the real
   engine against a sample Gross figure.
+- **Module 5 (Attendance & Leave)**: manual attendance marking (upsert by
+  employee + date), bulk Excel/CSV import (`lib/attendance/import-parser.ts`,
+  SheetJS) with per-row error reporting, leave types + leave applications
+  with approve/reject, and an **automatic LOP calculator**
+  (`lib/attendance/lop-calculator.ts`) — working days minus present days,
+  half-day credit, and approved leave, computed live per employee per
+  month. Holiday-calendar and sandwich-leave rules aren't built yet (every
+  non-weekly-off day currently counts as a working day).
 - Dashboard shell with nav for all Phase 1 modules (remaining pages are
   stubs until built).
 
-**Not started yet** — Attendance, Leave, Payroll Processing,
-PF/ESI/PT/LWF/TDS, Payslip, ESS, F&F, then Phases 2–4 per the Implementation
-Package.
+**Not started yet** — Payroll Processing, PF/ESI/PT/LWF/TDS, Payslip, ESS,
+F&F, then Phases 2–4 per the Implementation Package.
 
 ## Local setup
 
