@@ -1,0 +1,61 @@
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
+import { resolveCompanyId } from "@/lib/current-company";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { parseFormula } from "@/lib/formula-engine/parser";
+
+export async function createStructure(formData: FormData) {
+  const supabase = createClient();
+  const { companyId } = await resolveCompanyId(supabase);
+  if (!companyId) {
+    redirect(`/salary-structure/new?error=${encodeURIComponent("Create a company first")}`);
+  }
+
+  const { data: structure, error } = await supabase
+    .from("salary_structures")
+    .insert({
+      company_id: companyId,
+      structure_name: String(formData.get("structure_name") ?? ""),
+      effective_from: String(formData.get("effective_from") ?? ""),
+      effective_to: String(formData.get("effective_to") ?? "") || null,
+      status: "active"
+    })
+    .select()
+    .single();
+
+  if (error) {
+    redirect(`/salary-structure/new?error=${encodeURIComponent(error.message)}`);
+  }
+
+  redirect(`/salary-structure/${structure!.id}`);
+}
+
+export async function addStructureLine(formData: FormData) {
+  const structureId = String(formData.get("structure_id") ?? "");
+  const formula = String(formData.get("formula") ?? "");
+
+  // Formula Validation (SRS Module 4): catch syntax errors before saving
+  try {
+    parseFormula(formula);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Invalid formula syntax";
+    redirect(`/salary-structure/${structureId}?error=${encodeURIComponent(message)}`);
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase.from("salary_structure_details").insert({
+    salary_structure_id: structureId,
+    component_id: String(formData.get("component_id") ?? ""),
+    formula,
+    sequence: Number(formData.get("sequence") ?? 0),
+    effective_from: String(formData.get("effective_from") ?? "")
+  });
+
+  if (error) {
+    redirect(`/salary-structure/${structureId}?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath(`/salary-structure/${structureId}`);
+}

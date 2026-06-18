@@ -6,6 +6,7 @@ const NAV = [
   { href: "/companies", label: "Companies" },
   { href: "/organization", label: "Organization" },
   { href: "/employees", label: "Employees" },
+  { href: "/salary-components", label: "Salary components" },
   { href: "/salary-structure", label: "Salary structure" },
   { href: "/attendance", label: "Attendance" },
   { href: "/leave", label: "Leave" },
