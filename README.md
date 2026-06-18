@@ -30,12 +30,21 @@ BRD → PRD → SRS → Database Design → UI/UX Spec → Reports Catalogue →
   audit log entry, and trigram-indexed search by name/code/PAN
   (`0003_search_indexes.sql`) to satisfy the "searchable within 2 seconds"
   acceptance criterion.
+- **Modules 3–4 (Salary Structure Designer + Formula Engine)**: salary
+  component master, structures with versioned formula lines, and a real
+  formula engine (`lib/formula-engine`) — tokenizer → parser → dependency
+  resolver → evaluator. Supports `Min`/`Max`/`Round`/`Abs`, percentage
+  literals (`12%`), and cross-component references (e.g.
+  `PF = Min(Basic,15000) × 12%`). Detects circular dependencies and unknown
+  references at validation time — no developer needed to change a formula.
+  A live "test calculation" panel on the structure page runs the real
+  engine against a sample Gross figure.
 - Dashboard shell with nav for all Phase 1 modules (remaining pages are
   stubs until built).
 
-**Not started yet** — Salary Structure Designer, Formula Engine, Attendance,
-Leave, Payroll Processing, PF/ESI/PT/LWF/TDS, Payslip, ESS, F&F, then
-Phases 2–4 per the Implementation Package.
+**Not started yet** — Attendance, Leave, Payroll Processing,
+PF/ESI/PT/LWF/TDS, Payslip, ESS, F&F, then Phases 2–4 per the Implementation
+Package.
 
 ## Local setup
 
