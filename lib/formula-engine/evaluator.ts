@@ -11,7 +11,8 @@ const FUNCTIONS: Record<string, (...args: number[]) => number> = {
   },
   ABS: (a) => Math.abs(a),
   FLOOR: (a) => Math.floor(a),
-  CEIL: (a) => Math.ceil(a)
+  CEIL: (a) => Math.ceil(a),
+  IF: (cond, then, otherwise) => (cond !== 0 ? then : otherwise)
 };
 
 /** context keys must be UPPERCASE component/variable codes */
@@ -30,6 +31,25 @@ export function evaluate(node: Node, context: Record<string, number>): number {
       return -evaluate(node.operand, context);
     case "percent":
       return evaluate(node.operand, context) / 100;
+    case "compare": {
+      const left = evaluate(node.left, context);
+      const right = evaluate(node.right, context);
+      switch (node.op) {
+        case ">":
+          return left > right ? 1 : 0;
+        case "<":
+          return left < right ? 1 : 0;
+        case ">=":
+          return left >= right ? 1 : 0;
+        case "<=":
+          return left <= right ? 1 : 0;
+        case "==":
+          return left === right ? 1 : 0;
+        case "!=":
+          return left !== right ? 1 : 0;
+      }
+      break;
+    }
     case "binary": {
       const left = evaluate(node.left, context);
       const right = evaluate(node.right, context);

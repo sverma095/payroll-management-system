@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
-import { addStructureLine } from "../actions";
+import { addStructureLine, assignSalaryStructure } from "../actions";
 import { StructureCalculator } from "@/components/structure-calculator";
 import { notFound } from "next/navigation";
 
@@ -22,7 +22,7 @@ export default async function StructureDetailPage({
 
   if (!structure) notFound();
 
-  const [{ data: lines }, { data: components }] = await Promise.all([
+  const [{ data: lines }, { data: components }, { data: employees }, { data: assignments }] = await Promise.all([
     supabase
       .from("salary_structure_details")
       .select("id, formula, sequence, effective_from, salary_components(component_code, component_name)")
@@ -30,7 +30,15 @@ export default async function StructureDetailPage({
       .order("sequence"),
     companyId
       ? supabase.from("salary_components").select("id, component_code, component_name").eq("company_id", companyId).eq("active", true)
-      : Promise.resolve({ data: [] as any[] })
+      : Promise.resolve({ data: [] as any[] }),
+    companyId
+      ? supabase.from("employees").select("id, employee_code, first_name, last_name").eq("company_id", companyId).eq("status", "active")
+      : Promise.resolve({ data: [] as any[] }),
+    supabase
+      .from("employee_salary_assignments")
+      .select("employee_id, monthly_gross, effective_from, employees(employee_code, first_name, last_name)")
+      .eq("salary_structure_id", params.id)
+      .is("effective_to", null)
   ]);
 
   return (
@@ -116,7 +124,46 @@ export default async function StructureDetailPage({
           </section>
         </div>
 
-        <div>
+        <div className="space-y-5">
+          <section className="bg-white border border-line rounded-xl p-5">
+            <h2 className="text-sm font-semibold text-ink mb-1">Assigned employees</h2>
+            <p className="text-xs text-ink/50 mb-3">
+              This is the gross fed into the formula engine each payroll run.
+            </p>
+            <ul className="space-y-1.5 mb-4 text-sm">
+              {assignments && assignments.length > 0 ? (
+                assignments.map((a: any) => (
+                  <li key={a.employee_id} className="flex justify-between text-ink/70">
+                    <span>
+                      {a.employees?.employee_code} — {a.employees?.first_name} {a.employees?.last_name ?? ""}
+                    </span>
+                    <span className="font-mono">₹{Number(a.monthly_gross).toLocaleString("en-IN")}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="text-ink/40">No employees assigned yet.</li>
+              )}
+            </ul>
+            <form action={assignSalaryStructure} className="space-y-2 border-t border-line pt-3">
+              <input type="hidden" name="structure_id" value={structure.id} />
+              <select name="employee_id" required className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs bg-white">
+                <option value="">Employee</option>
+                {(employees ?? []).map((e: any) => (
+                  <option key={e.id} value={e.id}>
+                    {e.employee_code} — {e.first_name} {e.last_name ?? ""}
+                  </option>
+                ))}
+              </select>
+              <div className="grid grid-cols-2 gap-2">
+                <input name="monthly_gross" type="number" required placeholder="Monthly gross" className="rounded-lg border border-line px-2.5 py-1.5 text-xs" />
+                <input name="effective_from" type="date" required defaultValue={structure.effective_from} className="rounded-lg border border-line px-2.5 py-1.5 text-xs" />
+              </div>
+              <button type="submit" className="w-full rounded-lg bg-accent text-white text-xs font-medium py-1.5 hover:bg-accent/90">
+                Assign
+              </button>
+            </form>
+          </section>
+
           <StructureCalculator structureId={structure.id} />
         </div>
       </div>

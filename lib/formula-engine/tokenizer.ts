@@ -9,6 +9,12 @@ export type TokenType =
   | "LPAREN"
   | "RPAREN"
   | "COMMA"
+  | "GT"
+  | "LT"
+  | "GTE"
+  | "LTE"
+  | "EQ"
+  | "NEQ"
   | "EOF";
 
 export interface Token {
@@ -84,6 +90,40 @@ export function tokenize(input: string): Token[] {
       case ",":
         tokens.push({ type: "COMMA", value: c, pos: i });
         i++;
+        continue;
+      case ">":
+        if (input[i + 1] === "=") {
+          tokens.push({ type: "GTE", value: ">=", pos: i });
+          i += 2;
+        } else {
+          tokens.push({ type: "GT", value: c, pos: i });
+          i++;
+        }
+        continue;
+      case "<":
+        if (input[i + 1] === "=") {
+          tokens.push({ type: "LTE", value: "<=", pos: i });
+          i += 2;
+        } else {
+          tokens.push({ type: "LT", value: c, pos: i });
+          i++;
+        }
+        continue;
+      case "=":
+        if (input[i + 1] === "=") {
+          tokens.push({ type: "EQ", value: "==", pos: i });
+          i += 2;
+        } else {
+          throw new FormulaSyntaxError("Use '==' for equality", i);
+        }
+        continue;
+      case "!":
+        if (input[i + 1] === "=") {
+          tokens.push({ type: "NEQ", value: "!=", pos: i });
+          i += 2;
+        } else {
+          throw new FormulaSyntaxError("Unexpected '!'", i);
+        }
         continue;
       default:
         throw new FormulaSyntaxError(`Unexpected character '${c}'`, i);

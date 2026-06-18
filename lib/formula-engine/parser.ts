@@ -6,6 +6,7 @@ export type Node =
   | { kind: "unary_minus"; operand: Node }
   | { kind: "percent"; operand: Node }
   | { kind: "binary"; op: "+" | "-" | "*" | "/"; left: Node; right: Node }
+  | { kind: "compare"; op: ">" | "<" | ">=" | "<=" | "==" | "!="; left: Node; right: Node }
   | { kind: "call"; name: string; args: Node[] };
 
 class Parser {
@@ -33,6 +34,18 @@ class Parser {
   }
 
   parseExpression(): Node {
+    const left = this.parseAdditive();
+    const t = this.peek();
+    if (t.type === "GT" || t.type === "LT" || t.type === "GTE" || t.type === "LTE" || t.type === "EQ" || t.type === "NEQ") {
+      this.next();
+      const right = this.parseAdditive();
+      const op = t.value as "<" | ">" | ">=" | "<=" | "==" | "!=";
+      return { kind: "compare", op, left, right };
+    }
+    return left;
+  }
+
+  private parseAdditive(): Node {
     let node = this.parseTerm();
     while (this.peek().type === "PLUS" || this.peek().type === "MINUS") {
       const op = this.next().type === "PLUS" ? "+" : "-";
@@ -138,6 +151,7 @@ export function extractIdentifiers(node: Node): Set<string> {
         visit(n.operand);
         break;
       case "binary":
+      case "compare":
         visit(n.left);
         visit(n.right);
         break;
