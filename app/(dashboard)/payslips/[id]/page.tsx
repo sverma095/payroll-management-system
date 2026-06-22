@@ -31,31 +31,14 @@ export default async function PayslipDetailPage({
     ? await supabase.from("companies").select("company_name, legal_name").eq("id", header.company_id).single()
     : { data: null };
 
-  // map component codes back to friendly names + earning/deduction classification
-  const { data: components } = header?.company_id
-    ? await supabase
-        .from("salary_components")
-        .select("component_code, component_name, component_type")
-        .eq("company_id", header.company_id)
-    : { data: [] };
-  const componentMeta = new Map((components ?? []).map((c) => [c.component_code.toUpperCase(), c]));
+  const breakdown = (detail as any).breakdown_json as
+    | { components: { code: string; name: string; type: string; value: number }[]; payableDays: number; workingDays: number; tdsEstimated: boolean }
+    | undefined;
 
-  const values: Record<string, number> = (detail as any).breakdown_json?.values ?? {};
-  const earningRows: { code: string; name: string; amount: number }[] = [];
-  const deductionRows: { code: string; name: string; amount: number }[] = [];
-
-  for (const [code, amount] of Object.entries(values)) {
-    if (code === "GROSS") continue;
-    const meta = componentMeta.get(code);
-    const name = meta?.component_name ?? code;
-    if (meta?.component_type === "deduction") {
-      deductionRows.push({ code, name, amount });
-    } else if (meta?.component_type === "earning") {
-      earningRows.push({ code, name, amount });
-    }
-  }
-  if ((detail as any).breakdown_json?.tdsEstimated) {
-    deductionRows.push({ code: "TDS", name: "TDS (estimated)", amount: Number(detail.tds) });
+  const earningRows = (breakdown?.components ?? []).filter((c) => c.type === "earning");
+  const deductionRows: { code: string; name: string; value: number }[] = (breakdown?.components ?? []).filter((c) => c.type === "deduction");
+  if (breakdown?.tdsEstimated) {
+    deductionRows.push({ code: "TDS", name: "TDS (estimated)", value: Number(detail.tds) });
   }
 
   return (
@@ -95,7 +78,7 @@ export default async function PayslipDetailPage({
           <div>
             <p className="text-ink/40 text-xs">Payable days</p>
             <p className="text-ink">
-              {(detail as any).breakdown_json?.payableDays ?? "—"} / {(detail as any).breakdown_json?.workingDays ?? "—"}
+              {breakdown?.payableDays ?? "—"} / {breakdown?.workingDays ?? "—"}
             </p>
           </div>
         </div>
@@ -108,7 +91,7 @@ export default async function PayslipDetailPage({
                 {earningRows.map((r) => (
                   <tr key={r.code} className="border-b border-line">
                     <td className="py-1.5 text-ink/70">{r.name}</td>
-                    <td className="py-1.5 text-right font-mono">{r.amount.toLocaleString("en-IN")}</td>
+                    <td className="py-1.5 text-right font-mono">{r.value.toLocaleString("en-IN")}</td>
                   </tr>
                 ))}
                 <tr className="font-medium">
@@ -126,7 +109,7 @@ export default async function PayslipDetailPage({
                 {deductionRows.map((r) => (
                   <tr key={r.code} className="border-b border-line">
                     <td className="py-1.5 text-ink/70">{r.name}</td>
-                    <td className="py-1.5 text-right font-mono">{r.amount.toLocaleString("en-IN")}</td>
+                    <td className="py-1.5 text-right font-mono">{r.value.toLocaleString("en-IN")}</td>
                   </tr>
                 ))}
                 <tr className="font-medium">

@@ -1,3 +1,5 @@
+import { getComponentValue } from "@/lib/payroll/breakdown";
+
 export interface ReportColumn {
   key: string;
   label: string;
@@ -95,14 +97,13 @@ export function buildPFReport(details: PayrollDetailRow[], employees: Map<string
     ],
     rows: details.map((d) => {
       const e = employees.get(d.employee_id);
-      const values = d.breakdown_json?.values ?? {};
       return {
         uan: e?.uan ?? "MISSING",
         code: e?.employee_code ?? "",
         name: e ? employeeName(e) : "",
-        wages: values.BASIC ?? 0,
+        wages: getComponentValue(d.breakdown_json, "BASIC"),
         employee_pf: d.pf,
-        employer_pf: values.EMPLOYER_PF ?? ""
+        employer_pf: getComponentValue(d.breakdown_json, "EMPLOYER_PF") || ""
       };
     })
   };
@@ -124,14 +125,13 @@ export function buildESIReport(details: PayrollDetailRow[], employees: Map<strin
       .filter((d) => d.esi > 0 || employees.get(d.employee_id)?.esic_number)
       .map((d) => {
         const e = employees.get(d.employee_id);
-        const values = d.breakdown_json?.values ?? {};
         return {
           esic: e?.esic_number ?? "MISSING",
           code: e?.employee_code ?? "",
           name: e ? employeeName(e) : "",
           wages: d.gross_salary,
           employee_esi: d.esi,
-          employer_esi: values.EMPLOYER_ESI ?? ""
+          employer_esi: getComponentValue(d.breakdown_json, "EMPLOYER_ESI") || ""
         };
       })
   };

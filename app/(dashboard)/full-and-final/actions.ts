@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { computeFullAndFinal } from "@/lib/payroll/full-and-final";
+import { getComponentValue } from "@/lib/payroll/breakdown";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -46,7 +47,7 @@ export async function initiateFullAndFinal(formData: FormData) {
     .maybeSingle();
 
   const monthlyGross = Number(assignment!.monthly_gross);
-  const basic = (lastPayrollDetail?.breakdown_json as any)?.values?.BASIC ?? monthlyGross * 0.5;
+  const basic = getComponentValue(lastPayrollDetail?.breakdown_json as any, "BASIC") || monthlyGross * 0.5;
 
   const { data: loans } = await supabase
     .from("loans")
