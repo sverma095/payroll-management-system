@@ -1,5 +1,5 @@
 import { PayslipDetail } from "@/components/payslip-detail";
 
-export default function PayslipDetailPage({ params }: { params: { id: string } }) {
+export default function MyPayslipDetailPage({ params }: { params: { id: string } }) {
   return <PayslipDetail id={params.id} />;
 }

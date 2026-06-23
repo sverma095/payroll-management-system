@@ -4,22 +4,12 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/companies", label: "Companies" },
-  { href: "/organization", label: "Organization" },
-  { href: "/employees", label: "Employees" },
-  { href: "/salary-components", label: "Salary components" },
-  { href: "/salary-structure", label: "Salary structure" },
-  { href: "/attendance", label: "Attendance" },
-  { href: "/leave", label: "Leave" },
-  { href: "/payroll", label: "Payroll processing" },
-  { href: "/payslips", label: "Payslips" },
-  { href: "/full-and-final", label: "Full & Final" },
-  { href: "/reports", label: "Reports" },
-  { href: "/settings", label: "Settings" }
+  { href: "/ess/profile", label: "My Profile" },
+  { href: "/ess/payslips", label: "My Payslips" },
+  { href: "/ess/leave", label: "My Leave" }
 ];
 
-export default async function DashboardLayout({
+export default async function EssLayout({
   children
 }: {
   children: React.ReactNode;
@@ -28,18 +18,18 @@ export default async function DashboardLayout({
   const { data: { user } } = await supabase.auth.getUser();
   const { employeeId } = await resolveCompanyId(supabase);
 
-  if (employeeId) {
-    redirect("/ess/profile");
+  if (!employeeId) {
+    redirect("/dashboard");
   }
 
   return (
     <div className="min-h-screen flex">
-      <aside className="w-60 border-r border-line bg-white flex flex-col">
+      <aside className="w-56 border-r border-line bg-white flex flex-col">
         <div className="px-5 py-5 border-b border-line">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-accent" />
             <span className="text-sm font-mono tracking-wider text-ink/60 uppercase">
-              Payroll OS
+              My Workspace
             </span>
           </div>
         </div>
