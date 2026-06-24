@@ -122,6 +122,45 @@ export async function runPayroll(
   const attendanceByEmployee = new Map(attendanceSummary.map((s) => [s.employeeId, s]));
   const workingDays = getWorkingDaysInMonth(year, month);
 
+  // Phase 2 integrations: loan EMI, variable pay, and reimbursements aren't
+  // data islands — payroll is what actually pays them out.
+  const { data: activeLoans } = await supabase
+    .from("loans")
+    .select("id, employee_id, emi_amount, outstanding_balance")
+    .in("employee_id", employeeIds)
+    .eq("status", "active");
+  const loansByEmployee = new Map<string, typeof activeLoans>();
+  for (const l of activeLoans ?? []) {
+    const list = loansByEmployee.get(l.employee_id) ?? [];
+    list.push(l);
+    loansByEmployee.set(l.employee_id, list);
+  }
+
+  const { data: pendingVariablePay } = await supabase
+    .from("variable_pay")
+    .select("id, employee_id, approved_amount, payout_amount")
+    .in("employee_id", employeeIds)
+    .gt("approved_amount", 0)
+    .or("payout_amount.is.null,payout_amount.eq.0");
+  const variablePayByEmployee = new Map<string, typeof pendingVariablePay>();
+  for (const v of pendingVariablePay ?? []) {
+    const list = variablePayByEmployee.get(v.employee_id) ?? [];
+    list.push(v);
+    variablePayByEmployee.set(v.employee_id, list);
+  }
+
+  const { data: approvedClaims } = await supabase
+    .from("reimbursements")
+    .select("id, employee_id, approved_amount")
+    .in("employee_id", employeeIds)
+    .eq("status", "approved");
+  const claimsByEmployee = new Map<string, typeof approvedClaims>();
+  for (const c of approvedClaims ?? []) {
+    const list = claimsByEmployee.get(c.employee_id) ?? [];
+    list.push(c);
+    claimsByEmployee.set(c.employee_id, list);
+  }
+
   const { data: header, error: headerError } = await supabase
     .from("payroll_headers")
     .upsert(
@@ -136,6 +175,9 @@ export async function runPayroll(
   }
 
   const detailRows: Record<string, unknown>[] = [];
+  const loanDeductionsApplied: { id: string; amount: number; newBalance: number }[] = [];
+  const variablePayPaid: string[] = [];
+  const claimsPaid: string[] = [];
 
   for (const e of employees) {
     const assignment = assignmentByEmployee.get(e.id) as any;
@@ -166,8 +208,38 @@ export async function runPayroll(
       .filter((c) => c.type === "deduction" && !["PF", "ESI", "PT", "LWF", "TDS"].includes(c.code.toUpperCase()))
       .reduce((sum, c) => sum + byCode(c.code), 0);
 
-    const totalDeduction = pf + esi + pt + lwf + tds + otherDeductions;
-    const netSalary = totalEarnings - totalDeduction;
+    // Loan EMI: capped at whatever's actually left outstanding
+    let loanDeduction = 0;
+    for (const loan of loansByEmployee.get(e.id) ?? []) {
+      const due = Math.min(Number(loan.emi_amount), Number(loan.outstanding_balance));
+      if (due > 0) {
+        loanDeduction += due;
+        loanDeductionsApplied.push({ id: loan.id, amount: due, newBalance: Number(loan.outstanding_balance) - due });
+      }
+    }
+
+    // Approved variable pay, paid out this run
+    let variablePayAmount = 0;
+    for (const vp of variablePayByEmployee.get(e.id) ?? []) {
+      variablePayAmount += Number(vp.approved_amount);
+      variablePayPaid.push(vp.id);
+    }
+
+    // Approved reimbursement claims, paid out this run
+    let reimbursementAmount = 0;
+    for (const claim of claimsByEmployee.get(e.id) ?? []) {
+      reimbursementAmount += Number(claim.approved_amount);
+      claimsPaid.push(claim.id);
+    }
+
+    const totalDeduction = pf + esi + pt + lwf + tds + otherDeductions + loanDeduction;
+    const netSalary = totalEarnings - totalDeduction + variablePayAmount + reimbursementAmount;
+
+    const extraComponents = [
+      ...(loanDeduction > 0 ? [{ code: "LOAN_EMI", name: "Loan EMI", type: "deduction", value: loanDeduction }] : []),
+      ...(variablePayAmount > 0 ? [{ code: "VARIABLE_PAY", name: "Variable pay", type: "earning", value: variablePayAmount }] : []),
+      ...(reimbursementAmount > 0 ? [{ code: "REIMBURSEMENT", name: "Reimbursement", type: "earning", value: reimbursementAmount }] : [])
+    ];
 
     detailRows.push({
       payroll_header_id: header.id,
@@ -181,7 +253,10 @@ export async function runPayroll(
       lwf,
       tds,
       breakdown_json: {
-        components: components.map((c) => ({ code: c.code, name: c.name, type: c.type, value: byCode(c.code) })),
+        components: [
+          ...components.map((c) => ({ code: c.code, name: c.name, type: c.type, value: byCode(c.code) })),
+          ...extraComponents
+        ],
         payableDays,
         workingDays,
         proratedGross,
@@ -206,6 +281,20 @@ export async function runPayroll(
 
   if (detailError) {
     return { ok: false, issues: [{ employeeId: "", employeeCode: "", message: detailError.message }], processedCount: 0, headerId: header.id };
+  }
+
+  for (const l of loanDeductionsApplied) {
+    await supabase
+      .from("loans")
+      .update({ outstanding_balance: l.newBalance, status: l.newBalance <= 0 ? "closed" : "active" })
+      .eq("id", l.id);
+  }
+  for (const id of variablePayPaid) {
+    const vp = (pendingVariablePay ?? []).find((v) => v.id === id);
+    await supabase.from("variable_pay").update({ payout_amount: vp?.approved_amount ?? 0 }).eq("id", id);
+  }
+  for (const id of claimsPaid) {
+    await supabase.from("reimbursements").update({ status: "paid" }).eq("id", id);
   }
 
   return { ok: true, issues: warnings, processedCount: detailRows.length, headerId: header.id };

@@ -6,7 +6,8 @@ import Link from "next/link";
 const NAV = [
   { href: "/ess/profile", label: "My Profile" },
   { href: "/ess/payslips", label: "My Payslips" },
-  { href: "/ess/leave", label: "My Leave" }
+  { href: "/ess/leave", label: "My Leave" },
+  { href: "/ess/reimbursements", label: "My Reimbursements" }
 ];
 
 export default async function EssLayout({

@@ -1,0 +1,83 @@
+import { createClient } from "@/lib/supabase/server";
+import { submitMyClaim } from "./actions";
+
+const STATUS_STYLE: Record<string, string> = {
+  pending: "bg-accentSoft text-accent",
+  approved: "bg-accentSoft text-accent",
+  rejected: "bg-warn/10 text-warn",
+  paid: "bg-ink/5 text-ink/50"
+};
+
+export default async function MyReimbursementsPage({
+  searchParams
+}: {
+  searchParams: { error?: string };
+}) {
+  const supabase = createClient();
+
+  const { data: claims } = await supabase
+    .from("reimbursements")
+    .select("id, claim_type, claim_amount, approved_amount, status")
+    .order("created_at", { ascending: false });
+
+  return (
+    <div className="p-8">
+      <h1 className="text-xl font-semibold text-ink mb-1">My Reimbursements</h1>
+      <p className="text-sm text-ink/50 mb-6">Submit an expense claim and track its status.</p>
+
+      {searchParams?.error && <p className="text-sm text-warn mb-4">{searchParams.error}</p>}
+
+      <div className="grid grid-cols-3 gap-6">
+        <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-line text-left text-ink/50">
+                <th className="px-4 py-2.5 font-medium">Claim type</th>
+                <th className="px-4 py-2.5 font-medium text-right">Claimed</th>
+                <th className="px-4 py-2.5 font-medium text-right">Approved</th>
+                <th className="px-4 py-2.5 font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {claims && claims.length > 0 ? (
+                claims.map((c: any) => (
+                  <tr key={c.id} className="border-b border-line last:border-0">
+                    <td className="px-4 py-2.5 text-ink">{c.claim_type}</td>
+                    <td className="px-4 py-2.5 text-right font-mono">{Number(c.claim_amount).toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-2.5 text-right font-mono">{Number(c.approved_amount ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-2.5">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs capitalize ${STATUS_STYLE[c.status] ?? ""}`}>
+                        {c.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="px-4 py-10 text-center text-ink/40">No claims yet.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <section className="bg-white border border-line rounded-xl p-5">
+          <h2 className="text-sm font-semibold text-ink mb-3">Submit a claim</h2>
+          <form action={submitMyClaim} className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-ink/70 mb-1.5">Claim type</label>
+              <input name="claim_type" required placeholder="Travel, internet, etc." className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-ink/70 mb-1.5">Amount</label>
+              <input name="claim_amount" type="number" required className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs" />
+            </div>
+            <button type="submit" className="w-full rounded-lg bg-accent text-white text-xs font-medium py-1.5 hover:bg-accent/90">
+              Submit claim
+            </button>
+          </form>
+        </section>
+      </div>
+    </div>
+  );
+}

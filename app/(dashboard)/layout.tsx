@@ -14,6 +14,10 @@ const NAV = [
   { href: "/leave", label: "Leave" },
   { href: "/payroll", label: "Payroll processing" },
   { href: "/payslips", label: "Payslips" },
+  { href: "/loans", label: "Loans" },
+  { href: "/reimbursements", label: "Reimbursements" },
+  { href: "/variable-pay", label: "Variable Pay" },
+  { href: "/performance", label: "Performance" },
   { href: "/full-and-final", label: "Full & Final" },
   { href: "/reports", label: "Reports" },
   { href: "/settings", label: "Settings" }
