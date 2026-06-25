@@ -19,6 +19,8 @@ const NAV = [
   { href: "/variable-pay", label: "Variable Pay" },
   { href: "/performance", label: "Performance" },
   { href: "/full-and-final", label: "Full & Final" },
+  { href: "/bonus", label: "Bonus" },
+  { href: "/compliance-dashboard", label: "Compliance" },
   { href: "/reports", label: "Reports" },
   { href: "/settings", label: "Settings" }
 ];
