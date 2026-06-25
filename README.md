@@ -18,15 +18,9 @@ BRD → PRD → SRS → Database Design → UI/UX Spec → Reports Catalogue →
   advisor clean except the 3 expected `authenticated`-role warnings on the
   RLS helper functions (required for row-level security to evaluate; see
   `0004_security_hardening.sql` for what was already locked down).
-- Vercel: **not connected yet** — the Vercel MCP connector available here
-  only supports monitoring existing projects (deployments, logs, docs
-  search), not creating one or running `vercel deploy`, and my sandbox's
-  network doesn't reach vercel.com. One-time manual step needed:
-  1. [vercel.com/new](https://vercel.com/new) → **Import Git Repository** → `sverma095/payroll-management-system`
-  2. Add env vars: `NEXT_PUBLIC_SUPABASE_URL=https://pmssjdauwuutwuxrhqmz.supabase.co`
-     and `NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_puVSHuv3RyyYgpaoq7kPWw_M7Pa3Oof`
-     (both are public/publishable-safe values)
-  3. Deploy — every push to `main` redeploys automatically after that.
+- Vercel: **live** at https://payroll-management-system-zeta.vercel.app,
+  auto-deploying from `main` on every push. Functions pinned to `bom1`
+  (Mumbai) to co-locate with the Supabase database.
 
 **Done**
 - Full schema migration (`supabase/migrations/0001_init_schema.sql`) — 28 tables
@@ -88,22 +82,56 @@ BRD → PRD → SRS → Database Design → UI/UX Spec → Reports Catalogue →
   notice-pay recovery. Initiating a settlement marks the employee
   `relieved`; approving marks them `ff_completed`. Verified against two
   hand-checked cases (5+ years tenure with gratuity, <5 years without).
-- **Fixed a real production bug**: the auth middleware was dropping
-  refreshed Supabase session cookies whenever it issued a redirect, which
-  caused a login redirect loop. Cookies are now copied onto every response
-  path, including redirects — this is a documented Next.js + Supabase SSR
-  gotcha, not something specific to this app.
-- Dashboard shell with nav for all Phase 1 modules (remaining pages are
-  stubs until built).
+- **Reports**: Payroll Register, PF, ESI, PT, LWF, TDS, Headcount, Audit
+  Log — shared builder functions between the on-screen table and CSV
+  export so they can't drift apart. PF/ESI reports are explicitly labeled
+  "indicative — verify against the current EPFO/ESIC spec" rather than
+  presented as filing-ready.
+- **Employee Self-Service**: three-tier access (tenant admin / company
+  admin / employee), own-record-only RLS. Found and fixed a real
+  `companies`↔`employees` RLS recursion bug during testing (routed through
+  a security-definer function, same pattern as the existing tenant/company
+  helpers). `/ess/profile`, `/ess/payslips`, `/ess/leave`.
+- **Fixed two real production bugs**: (1) the auth middleware was dropping
+  refreshed Supabase session cookies on redirect responses, causing a login
+  redirect loop — a documented Next.js + Supabase SSR gotcha, now fixed by
+  copying cookies onto every response path. (2) payslips/reports/F&F all
+  read a `breakdown_json.values` shape that was never actually written
+  (the real shape is `breakdown_json.components`) — consolidated into
+  `lib/payroll/breakdown.ts` as the one place that reads it.
+- **Performance**: Vercel functions pinned to Mumbai (`bom1`), co-located
+  with Supabase (`ap-south-1`), and `resolveCompanyId` collapsed from 3
+  sequential round trips into 1 RPC call (`resolve_current_company`) —
+  together these fixed a "every page load is slow" complaint.
 
-**Not started yet** — PF/ESI/PT/LWF/TDS as dedicated *reporting* modules
-(challans, ECR, Form 16 — Module 6 already does the calculation side),
-Employee Self-Service, then Phases 2–4 per the Implementation Package.
+## Phase 2
 
-**Demo account** (seeded test tenant/company/employees/structure/attendance
-— see the live app):
+- **Loans, Reimbursements, Variable Pay, Performance Ratings** — wired
+  into `lib/payroll/process.ts` so they're not data islands: active loan
+  EMI is deducted automatically every payroll run (capped at whatever's
+  left outstanding, with `loans.outstanding_balance` decremented after a
+  successful run), approved-but-unpaid variable pay and reimbursement
+  claims are paid out and marked paid the next time payroll runs for that
+  employee. Reimbursements has an ESS submission flow too
+  (`/ess/reimbursements`); Loans/Variable Pay/Performance are currently
+  admin-managed only.
+- Not yet built: **Salary Revision** (the mechanism already exists —
+  `employee_salary_assignments` supports dated revisions via the existing
+  "assign structure" form — just needs a dedicated UI/history view),
+  **Retro Payroll** (arrears when a revision lands after payroll already
+  ran for that period), and a generalized **Workflow Engine** (today's
+  approve/reject patterns are per-module, not a configurable multi-step
+  chain using the existing `workflows`/`workflow_steps` tables).
+
+## Demo accounts
+
+Admin (tenant-wide):
 ```
 demo@payroll-os.local / Demo@12345
+```
+ESS (scoped to one employee, Aarav Sharma):
+```
+aarav.sharma@demo-industries.local / Employee@123
 ```
 
 ## Local setup
@@ -130,8 +158,8 @@ null for tenant/super-admin access across all companies).
 
 | Phase | Scope |
 |---|---|
-| 1 (current) | Company, Employee, Salary Structure, Formula Engine, Attendance, Leave, Payroll, PF, ESI, PT, LWF, TDS, Payslip, ESS, F&F |
-| 2 | Variable Pay, Performance, Reimbursement, Loans, Salary Revision, Retro Payroll, Workflow Engine |
+| 1 — done | Company, Employee, Salary Structure, Formula Engine, Attendance, Leave, Payroll, PF, ESI, PT, LWF, TDS, Payslip, ESS, F&F |
+| 2 — in progress | Variable Pay, Performance, Reimbursement, Loans, Salary Revision, Retro Payroll, Workflow Engine |
 | 3 | Accounting Integration, Compliance Dashboard, Bonus, Gratuity, Insurance |
 | 4 | SaaS Billing, White Labelling, Mobile App, AI Analytics |
 
