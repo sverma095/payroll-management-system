@@ -12,6 +12,7 @@ import {
   ReportTable
 } from "@/lib/reports/builders";
 import { tableToCsv } from "@/lib/reports/to-csv";
+import { buildJournalVoucher } from "@/lib/reports/journal-voucher";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -39,7 +40,8 @@ export async function GET(request: NextRequest) {
       esi: () => buildESIReport(details as any, employeesMap as any),
       pt: () => buildPTReport(details as any, employeesMap as any),
       lwf: () => buildLWFReport(details as any, employeesMap as any),
-      tds: () => buildTDSReport(details as any, employeesMap as any)
+      tds: () => buildTDSReport(details as any, employeesMap as any),
+      jv: () => buildJournalVoucher(details as any)
     };
     table = (builders[report] ?? builders.register)();
   }

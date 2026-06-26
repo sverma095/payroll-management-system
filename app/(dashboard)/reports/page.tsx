@@ -11,6 +11,7 @@ import {
   buildHeadcountReport,
   ReportTable
 } from "@/lib/reports/builders";
+import { buildJournalVoucher } from "@/lib/reports/journal-voucher";
 import Link from "next/link";
 
 const REPORT_TABS = [
@@ -20,6 +21,7 @@ const REPORT_TABS = [
   { key: "pt", label: "PT" },
   { key: "lwf", label: "LWF" },
   { key: "tds", label: "TDS" },
+  { key: "jv", label: "Accounting (JV)" },
   { key: "headcount", label: "Headcount" },
   { key: "audit", label: "Audit log" }
 ];
@@ -66,6 +68,9 @@ export default async function ReportsPage({
         break;
       case "tds":
         table = buildTDSReport(details as any, employeesMap as any);
+        break;
+      case "jv":
+        table = buildJournalVoucher(details as any);
         break;
       case "headcount":
         table = buildHeadcountReport(employeesList.filter((e: any) => e.status === "active") as any);
