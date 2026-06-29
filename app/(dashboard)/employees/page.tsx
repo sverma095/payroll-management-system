@@ -47,12 +47,17 @@ export default async function EmployeesPage({
             Employee master, compliance data and payroll profile.
           </p>
         </div>
-        <Link
-          href="/employees/new"
-          className="rounded-lg bg-accent text-white text-sm font-medium px-4 py-2 hover:bg-accent/90 transition-colors"
-        >
-          Add employee
-        </Link>
+        <div className="flex items-center gap-3">
+          <a href="/api/employees-csv" className="rounded-lg border border-line bg-white text-sm font-medium px-4 py-2 hover:bg-accentSoft transition-colors">
+            Export CSV
+          </a>
+          <Link
+            href="/employees/new"
+            className="rounded-lg bg-accent text-white text-sm font-medium px-4 py-2 hover:bg-accent/90 transition-colors"
+          >
+            Add employee
+          </Link>
+        </div>
       </div>
 
       <form className="mb-4" action="/employees">

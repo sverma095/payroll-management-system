@@ -5,6 +5,43 @@ import { resolveCompanyId } from "@/lib/current-company";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { parseFormula } from "@/lib/formula-engine/parser";
+import { parseSalaryFile } from "@/lib/payroll/salary-import-parser";
+
+export async function bulkAssignSalary(formData: FormData) {
+  const structureId = String(formData.get("structure_id") ?? "");
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) {
+    redirect(`/salary-structure/${structureId}?error=${encodeURIComponent("Choose a file first")}`);
+  }
+
+  const supabase = createClient();
+  const { companyId } = await resolveCompanyId(supabase);
+  const buffer = await file!.arrayBuffer();
+  const parsed = parseSalaryFile(buffer);
+
+  const { data: emps } = await supabase.from("employees").select("id, employee_code").eq("company_id", companyId ?? "");
+  const codeToId = new Map((emps ?? []).map((e) => [e.employee_code.toUpperCase(), e.id]));
+
+  let imported = 0;
+  const errors: string[] = [];
+  for (const r of parsed) {
+    if (r.error) { errors.push(`Row ${r.row}: ${r.error}`); continue; }
+    const employeeId = codeToId.get(r.data!.employee_code.toUpperCase());
+    if (!employeeId) { errors.push(`Row ${r.row}: unknown employee_code ${r.data!.employee_code}`); continue; }
+
+    await supabase.from("employee_salary_assignments").update({ effective_to: r.data!.effective_from }).eq("employee_id", employeeId).is("effective_to", null);
+    await supabase.from("employee_salary_assignments").insert({
+      employee_id: employeeId,
+      salary_structure_id: structureId,
+      monthly_gross: r.data!.monthly_gross,
+      effective_from: r.data!.effective_from
+    });
+    imported++;
+  }
+
+  revalidatePath(`/salary-structure/${structureId}`);
+  redirect(`/salary-structure/${structureId}?imported=${imported}&skipped=${errors.length}&errors=${encodeURIComponent(errors.slice(0, 5).join(" | "))}`);
+}
 
 export async function createStructure(formData: FormData) {
   const supabase = createClient();

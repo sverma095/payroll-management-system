@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
-import { addStructureLine, assignSalaryStructure } from "../actions";
+import { addStructureLine, assignSalaryStructure, bulkAssignSalary } from "../actions";
 import { StructureCalculator } from "@/components/structure-calculator";
 import { notFound } from "next/navigation";
 
@@ -9,7 +9,7 @@ export default async function StructureDetailPage({
   searchParams
 }: {
   params: { id: string };
-  searchParams: { error?: string };
+  searchParams: { error?: string; imported?: string; skipped?: string; errors?: string };
 }) {
   const supabase = createClient();
   const { companyId } = await resolveCompanyId(supabase);
@@ -162,6 +162,21 @@ export default async function StructureDetailPage({
                 Assign
               </button>
             </form>
+
+            <form action={bulkAssignSalary} className="space-y-2 border-t border-line pt-3 mt-3">
+              <input type="hidden" name="structure_id" value={structure.id} />
+              <label className="block text-xs text-ink/50">Bulk import (employee_code, monthly_gross, effective_from)</label>
+              <input type="file" name="file" accept=".csv,.xlsx,.xls" required className="block w-full text-xs" />
+              <button type="submit" className="w-full rounded-lg border border-line bg-white text-xs font-medium py-1.5 hover:bg-accentSoft">
+                Upload &amp; assign
+              </button>
+            </form>
+            <a href={`/api/salary-structure/${structure.id}/assignments-csv`} className="block text-center text-xs text-accent hover:underline mt-2">
+              Export current assignments (CSV)
+            </a>
+            {searchParams?.imported !== undefined && (
+              <p className="text-xs text-ink/50 mt-2">{searchParams.imported} imported, {searchParams.skipped} skipped. {searchParams.errors}</p>
+            )}
           </section>
 
           <StructureCalculator structureId={structure.id} />
