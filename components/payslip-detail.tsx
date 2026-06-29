@@ -41,6 +41,9 @@ export async function PayslipDetail({ id }: { id: string }) {
     <div className="p-8 max-w-2xl">
       <div className="flex items-center justify-between mb-6 print:hidden">
         <h1 className="text-xl font-semibold text-ink">Payslip</h1>
+        <a href={`/api/payslips/${id}/pdf`} className="rounded-lg border border-line bg-white text-sm font-medium px-4 py-2 hover:bg-accentSoft transition-colors mr-2">
+          Download PDF
+        </a>
         <PrintButton />
       </div>
 

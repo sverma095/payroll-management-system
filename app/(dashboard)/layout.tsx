@@ -26,8 +26,10 @@ const NAV = [
   { href: "/insurance", label: "Insurance" },
   { href: "/billing", label: "Billing" },
   { href: "/analytics", label: "Analytics" },
-  { href: "/org-chart", label: "Org Chart" },
-  { href: "/salary-history", label: "Salary History" },
+  { href: "/documents", label: "Documents" },
+  { href: "/helpdesk", label: "Helpdesk" },
+  { href: "/workflows", label: "Workflows" },
+  { href: "/compliance-calendar", label: "Compliance Calendar" },
   { href: "/reports", label: "Reports" },
   { href: "/settings", label: "Settings" }
 ];

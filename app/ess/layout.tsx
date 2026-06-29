@@ -7,7 +7,8 @@ const NAV = [
   { href: "/ess/profile", label: "My Profile" },
   { href: "/ess/payslips", label: "My Payslips" },
   { href: "/ess/leave", label: "My Leave" },
-  { href: "/ess/reimbursements", label: "My Reimbursements" }
+  { href: "/ess/reimbursements", label: "My Reimbursements" },
+  { href: "/ess/helpdesk", label: "Helpdesk" }
 ];
 
 export default async function EssLayout({
