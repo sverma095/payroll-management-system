@@ -8,6 +8,8 @@ const NAV = [
   { href: "/companies", label: "Companies" },
   { href: "/organization", label: "Organization" },
   { href: "/employees", label: "Employees" },
+  { href: "/org-chart", label: "Org Chart" },
+  { href: "/salary-history", label: "Salary History" },
   { href: "/salary-components", label: "Salary components" },
   { href: "/salary-structure", label: "Salary structure" },
   { href: "/attendance", label: "Attendance" },
@@ -24,6 +26,8 @@ const NAV = [
   { href: "/insurance", label: "Insurance" },
   { href: "/billing", label: "Billing" },
   { href: "/analytics", label: "Analytics" },
+  { href: "/org-chart", label: "Org Chart" },
+  { href: "/salary-history", label: "Salary History" },
   { href: "/reports", label: "Reports" },
   { href: "/settings", label: "Settings" }
 ];
