@@ -1,7 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { computeStructure, ComponentFormula } from "@/lib/formula-engine";
 import { fetchMonthlyAttendanceSummary } from "@/lib/attendance/summary";
-import { getWorkingDaysInMonth } from "@/lib/attendance/working-days";
+import { getWorkingDaysExcludingHolidays } from "@/lib/attendance/working-days";
 import { estimateMonthlyTDS } from "./tds-estimator";
 
 export interface PayrollIssue {
@@ -120,7 +120,7 @@ export async function runPayroll(
 
   const attendanceSummary = await fetchMonthlyAttendanceSummary(supabase, companyId, year, month);
   const attendanceByEmployee = new Map(attendanceSummary.map((s) => [s.employeeId, s]));
-  const workingDays = getWorkingDaysInMonth(year, month);
+  const workingDays = await getWorkingDaysExcludingHolidays(supabase, companyId, year, month);
 
   // Phase 2 integrations: loan EMI, variable pay, and reimbursements aren't
   // data islands — payroll is what actually pays them out.

@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { getWorkingDaysInMonth } from "./working-days";
+import { getWorkingDaysExcludingHolidays } from "./working-days";
 import { computeAttendanceSummary, AttendanceSummary } from "./lop-calculator";
 
 export interface EmployeeAttendanceSummary extends AttendanceSummary {
@@ -49,7 +49,7 @@ export async function fetchMonthlyAttendanceSummary(
     .lte("from_date", monthEndStr)
     .gte("to_date", monthStartStr);
 
-  const workingDays = getWorkingDaysInMonth(year, month);
+  const workingDays = await getWorkingDaysExcludingHolidays(supabase, companyId, year, month);
 
   const presentByEmployee = new Map<string, number>();
   const halfByEmployee = new Map<string, number>();

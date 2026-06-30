@@ -20,8 +20,16 @@ export default async function MyLeavePage({
       .from("leave_applications")
       .select("id, from_date, to_date, status, leave_types(leave_name, leave_code)")
       .order("created_at", { ascending: false }),
-    supabase.from("leave_types").select("id, leave_name, leave_code")
+    supabase.from("leave_types").select("id, leave_name, leave_code, annual_limit")
   ]);
+
+  const yearStart = `${new Date().getFullYear()}-01-01`;
+  const balances = (leaveTypes ?? []).map((t: any) => {
+    const taken = (applications ?? [])
+      .filter((a: any) => a.leave_types?.leave_code === t.leave_code && a.status === "approved" && a.from_date >= yearStart)
+      .reduce((s: number, a: any) => s + (new Date(a.to_date).getTime() - new Date(a.from_date).getTime()) / 86400000 + 1, 0);
+    return { ...t, taken, balance: Number(t.annual_limit) - taken };
+  });
 
   return (
     <div className="p-8">
@@ -65,6 +73,10 @@ export default async function MyLeavePage({
         </div>
 
         <section className="bg-white border border-line rounded-xl p-5">
+          <h2 className="text-sm font-semibold text-ink mb-3">Leave balance</h2>
+          <ul className="text-xs text-ink/70 space-y-1 mb-4">
+            {balances.map((b: any) => <li key={b.id}>{b.leave_code}: {b.balance} / {b.annual_limit}</li>)}
+          </ul>
           <h2 className="text-sm font-semibold text-ink mb-3">Apply for leave</h2>
           <form action={applyMyLeave} className="space-y-3">
             <select name="leave_type_id" required className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs bg-white">

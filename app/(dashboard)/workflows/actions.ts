@@ -26,3 +26,9 @@ export async function addStep(formData: FormData) {
   });
   revalidatePath("/workflows");
 }
+
+export async function deleteStep(formData: FormData) {
+  const supabase = createClient();
+  await supabase.from("workflow_steps").delete().eq("id", String(formData.get("id") ?? ""));
+  revalidatePath("/workflows");
+}

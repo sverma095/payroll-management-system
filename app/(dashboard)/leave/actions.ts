@@ -65,5 +65,14 @@ export async function decideLeave(formData: FormData) {
   if (error) {
     redirect(`/leave?error=${encodeURIComponent(error.message)}`);
   }
+
+  const { data: app } = await supabase.from("leave_applications").select("employee_id").eq("id", id).maybeSingle();
+  if (app) {
+    const { data: appUser } = await supabase.from("app_users").select("id").eq("employee_id", app.employee_id).maybeSingle();
+    if (appUser) {
+      await supabase.from("notifications").insert({ user_id: appUser.id, title: `Leave ${decision}`, body: `Your leave request was ${decision}.` });
+    }
+  }
+
   revalidatePath("/leave");
 }

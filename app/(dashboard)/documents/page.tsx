@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
-import { addDocument } from "./actions";
+import { addDocument, deleteDocument } from "./actions";
 
 export default async function DocumentsPage() {
   const supabase = createClient();
@@ -12,7 +12,7 @@ export default async function DocumentsPage() {
   return (
     <div className="p-8">
       <h1 className="text-xl font-semibold text-ink mb-1">Documents</h1>
-      <p className="text-sm text-ink/50 mb-6">Offer letters, policies, employee documents — links to external storage (no file upload yet).</p>
+      <p className="text-sm text-ink/50 mb-6">Offer letters, policies, employee documents.</p>
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">
           <table className="w-full text-sm"><tbody>
@@ -22,6 +22,7 @@ export default async function DocumentsPage() {
                 <td className="px-4 py-2.5 text-ink/50">{d.category}</td>
                 <td className="px-4 py-2.5 text-ink/50">{d.employees?.employee_code ?? "Company-wide"}</td>
                 <td className="px-4 py-2.5"><a href={d.doc_url} target="_blank" className="text-accent hover:underline">Open</a></td>
+                <td className="px-4 py-2.5"><form action={deleteDocument}><input type="hidden" name="id" value={d.id} /><button className="text-xs text-warn hover:underline">Delete</button></form></td>
               </tr>
             )) : <tr><td className="px-4 py-10 text-center text-ink/40">No documents yet.</td></tr>}
           </tbody></table>
@@ -30,7 +31,9 @@ export default async function DocumentsPage() {
           <h2 className="text-sm font-semibold text-ink mb-3">Add document</h2>
           <form action={addDocument} className="space-y-3">
             <input name="doc_name" required placeholder="Document name" className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs" />
-            <input name="doc_url" required placeholder="URL" className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs" />
+            <input type="file" name="file" className="block w-full text-xs" />
+            <p className="text-xs text-ink/40">or paste a URL instead:</p>
+            <input name="doc_url" placeholder="URL" className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs" />
             <select name="category" className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs bg-white">
               <option value="general">General</option>
               <option value="policy">Policy</option>

@@ -1,3 +1,4 @@
+import { NotificationBell } from "@/components/notification-bell";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { redirect } from "next/navigation";
@@ -30,6 +31,8 @@ const NAV = [
   { href: "/helpdesk", label: "Helpdesk" },
   { href: "/workflows", label: "Workflows" },
   { href: "/compliance-calendar", label: "Compliance Calendar" },
+  { href: "/holidays", label: "Holidays" },
+  { href: "/pt-slabs", label: "PT Slabs" },
   { href: "/reports", label: "Reports" },
   { href: "/settings", label: "Settings" }
 ];
@@ -41,14 +44,18 @@ export default async function DashboardLayout({
 }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { employeeId } = await resolveCompanyId(supabase);
+  const { employeeId, companyId } = await resolveCompanyId(supabase);
 
   if (employeeId) {
     redirect("/ess/profile");
   }
 
+  const { data: company } = companyId
+    ? await supabase.from("companies").select("theme_color, logo_url").eq("id", companyId).maybeSingle()
+    : { data: null };
+
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex" style={{ "--accent-color": company?.theme_color || "#2F5D50" } as React.CSSProperties}>
       <aside className="w-60 border-r border-line bg-white flex flex-col">
         <div className="px-5 py-5 border-b border-line">
           <div className="flex items-center gap-2">
@@ -70,6 +77,7 @@ export default async function DashboardLayout({
           ))}
         </nav>
         <div className="px-5 py-4 border-t border-line text-xs text-ink/40 truncate">
+          <NotificationBell />
           {user?.email}
         </div>
       </aside>

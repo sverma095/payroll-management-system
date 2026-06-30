@@ -1,3 +1,4 @@
+import { NotificationBell } from "@/components/notification-bell";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { redirect } from "next/navigation";
@@ -47,6 +48,7 @@ export default async function EssLayout({
           ))}
         </nav>
         <div className="px-5 py-4 border-t border-line text-xs text-ink/40 truncate">
+          <NotificationBell />
           {user?.email}
         </div>
       </aside>

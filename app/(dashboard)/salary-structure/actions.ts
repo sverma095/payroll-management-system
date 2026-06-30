@@ -94,6 +94,34 @@ export async function assignSalaryStructure(formData: FormData) {
     redirect(`/salary-structure/${structureId}?error=${encodeURIComponent(error.message)}`);
   }
 
+  // Retro arrears: if this revision is backdated into a month payroll
+  // already processed, pay the gap via the existing variable_pay payout path.
+  const revDate = new Date(effectiveFrom);
+  const { data: processedHeaders } = await supabase
+    .from("payroll_headers")
+    .select("id, month, year")
+    .in("status", ["processed", "approved", "locked"])
+    .gte("year", revDate.getFullYear());
+
+  const { data: priorDetails } = await supabase
+    .from("payroll_details")
+    .select("id, gross_salary, payroll_header_id")
+    .eq("employee_id", employeeId)
+    .in("payroll_header_id", (processedHeaders ?? []).filter((h) => new Date(h.year, h.month - 1) >= new Date(revDate.getFullYear(), revDate.getMonth())).map((h) => h.id));
+
+  if (priorDetails && priorDetails.length > 0) {
+    const arrears = priorDetails.reduce((sum, d) => sum + Math.max(0, monthlyGross - Number(d.gross_salary)), 0);
+    if (arrears > 0) {
+      await supabase.from("variable_pay").insert({
+        employee_id: employeeId,
+        variable_type: "arrears",
+        allocated_amount: arrears,
+        approved_amount: arrears,
+        payout_amount: 0
+      });
+    }
+  }
+
   revalidatePath(`/salary-structure/${structureId}`);
 }
 
