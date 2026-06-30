@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { issueLoan, recordManualRepayment } from "./actions";
+import { Alert } from "@/components/alert";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function LoansPage({
   searchParams
@@ -30,7 +32,7 @@ export default async function LoansPage({
         EMI is deducted automatically each time payroll runs while a loan is active. Outstanding balance also feeds Full &amp; Final recoveries.
       </p>
 
-      {searchParams?.error && <p className="text-sm text-warn mb-4">{searchParams.error}</p>}
+      {searchParams?.error && <Alert>{searchParams.error}</Alert>}
 
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">
@@ -78,7 +80,7 @@ export default async function LoansPage({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-ink/40">No loans yet.</td>
+                  <td colSpan={6} className="px-0 py-2"><EmptyState message="No loans yet." /></td>
                 </tr>
               )}
             </tbody>

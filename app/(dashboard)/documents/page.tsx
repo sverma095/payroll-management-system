@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { addDocument, deleteDocument } from "./actions";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function DocumentsPage() {
   const supabase = createClient();
@@ -29,7 +30,7 @@ export default async function DocumentsPage() {
                 <td className="px-4 py-2.5"><a href={d.doc_url} target="_blank" className="text-accent hover:underline">Open</a></td>
                 <td className="px-4 py-2.5"><form action={deleteDocument}><input type="hidden" name="id" value={d.id} /><button className="text-xs text-warn hover:underline">Delete</button></form></td>
               </tr>
-            )) : <tr><td className="px-4 py-10 text-center text-ink/40">No documents yet.</td></tr>}
+            )) : <tr><td className="px-0 py-2"><EmptyState message="No documents yet." /></td></tr>}
           </tbody></table>
         </div>
         <section className="bg-white border border-line rounded-xl p-5">

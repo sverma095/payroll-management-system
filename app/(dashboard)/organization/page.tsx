@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { createBranch, createDepartment, createDesignation } from "./actions";
+import { Alert } from "@/components/alert";
 
 export default async function OrganizationPage({
   searchParams
@@ -27,7 +28,7 @@ export default async function OrganizationPage({
       </p>
 
       {searchParams?.error && (
-        <p className="text-sm text-warn mb-4">{searchParams.error}</p>
+        <Alert>{searchParams.error}</Alert>
       )}
 
       <div className="grid grid-cols-3 gap-5">

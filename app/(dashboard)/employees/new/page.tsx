@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { createEmployee } from "../actions";
 import Link from "next/link";
+import { Alert } from "@/components/alert";
 
 export default async function NewEmployeePage({
   searchParams
@@ -91,7 +92,7 @@ export default async function NewEmployeePage({
           </div>
         </div>
 
-        {searchParams?.error && <p className="text-sm text-warn">{searchParams.error}</p>}
+        {searchParams?.error && <Alert>{searchParams.error}</Alert>}
 
         <div className="pt-2">
           <button

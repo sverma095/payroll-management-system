@@ -3,6 +3,8 @@ import { resolveCompanyId } from "@/lib/current-company";
 import { addStructureLine, assignSalaryStructure, bulkAssignSalary } from "../actions";
 import { StructureCalculator } from "@/components/structure-calculator";
 import { notFound } from "next/navigation";
+import { Alert } from "@/components/alert";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function StructureDetailPage({
   params,
@@ -71,9 +73,7 @@ export default async function StructureDetailPage({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={3} className="px-4 py-8 text-center text-ink/40">
-                      No formula lines yet.
-                    </td>
+                    <td colSpan={3} className="px-0 py-2"><EmptyState message="No formula lines yet." /></td>
                   </tr>
                 )}
               </tbody>
@@ -115,7 +115,7 @@ export default async function StructureDetailPage({
                 </div>
               </div>
 
-              {searchParams?.error && <p className="text-sm text-warn">{searchParams.error}</p>}
+              {searchParams?.error && <Alert>{searchParams.error}</Alert>}
 
               <button type="submit" className="rounded-lg bg-accent text-white text-sm font-medium px-4 py-2 hover:bg-accent/90 transition-colors">
                 Add line

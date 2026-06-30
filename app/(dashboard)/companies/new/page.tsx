@@ -1,4 +1,5 @@
 import { createCompany } from "../actions";
+import { Alert } from "@/components/alert";
 
 export default function NewCompanyPage({
   searchParams
@@ -33,9 +34,7 @@ export default function NewCompanyPage({
           <Field label="ESI registration number" name="esi_number" mono />
         </div>
 
-        {searchParams?.error && (
-          <p className="text-sm text-warn">{searchParams.error}</p>
-        )}
+        {searchParams?.error && <Alert>{searchParams.error}</Alert>}
 
         <div className="pt-2">
           <button

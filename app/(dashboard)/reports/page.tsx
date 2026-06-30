@@ -12,6 +12,7 @@ import {
   ReportTable
 } from "@/lib/reports/builders";
 import { buildJournalVoucher } from "@/lib/reports/journal-voucher";
+import { EmptyState } from "@/components/empty-state";
 import Link from "next/link";
 
 const REPORT_TABS = [
@@ -156,7 +157,7 @@ export default async function ReportsPage({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="px-4 py-10 text-center text-ink/40">No activity yet.</td>
+                  <td colSpan={3} className="px-0 py-2"><EmptyState message="No activity yet." /></td>
                 </tr>
               )}
             </tbody>
@@ -188,9 +189,7 @@ export default async function ReportsPage({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={table?.columns.length ?? 1} className="px-4 py-10 text-center text-ink/40">
-                    No data for this period.
-                  </td>
+                  <td colSpan={table?.columns.length ?? 1} className="px-0 py-2"><EmptyState message="No data for this period." /></td>
                 </tr>
               )}
             </tbody>

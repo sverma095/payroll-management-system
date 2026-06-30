@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { addPtSlab, deletePtSlab } from "./actions";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function PtSlabsPage() {
   const supabase = createClient();
@@ -22,7 +23,7 @@ export default async function PtSlabsPage() {
                 <td className="px-4 py-2.5 text-right font-mono">{s.pt_amount}</td>
                 <td className="px-4 py-2.5"><form action={deletePtSlab}><input type="hidden" name="id" value={s.id} /><button className="text-xs text-warn hover:underline">Delete</button></form></td>
               </tr>
-            )) : <tr><td colSpan={4} className="px-4 py-10 text-center text-ink/40">No slabs added yet.</td></tr>}
+            )) : <tr><td colSpan={4} className="px-0 py-2"><EmptyState message="No slabs added yet." /></td></tr>}
           </tbody></table>
         </div>
         <section className="bg-white border border-line rounded-xl p-5">

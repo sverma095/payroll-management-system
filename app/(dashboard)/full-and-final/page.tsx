@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { initiateFullAndFinal, approveFullAndFinal } from "./actions";
+import { Alert } from "@/components/alert";
+import { EmptyState } from "@/components/empty-state";
 
 const STATUS_STYLE: Record<string, string> = {
   draft: "bg-ink/5 text-ink/50",
@@ -42,7 +44,7 @@ export default async function FullAndFinalPage({
         unused-leave days — there&apos;s no running leave-balance ledger yet.
       </p>
 
-      {searchParams?.error && <p className="text-sm text-warn mb-4">{searchParams.error}</p>}
+      {searchParams?.error && <Alert>{searchParams.error}</Alert>}
 
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">
@@ -88,9 +90,7 @@ export default async function FullAndFinalPage({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-ink/40">
-                    No settlements yet.
-                  </td>
+                  <td colSpan={8} className="px-0 py-2"><EmptyState message="No settlements yet." /></td>
                 </tr>
               )}
             </tbody>

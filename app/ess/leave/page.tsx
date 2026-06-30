@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { applyMyLeave } from "./actions";
+import { Alert } from "@/components/alert";
+import { EmptyState } from "@/components/empty-state";
 
 const STATUS_STYLE: Record<string, string> = {
   pending: "bg-accentSoft text-accent",
@@ -36,7 +38,7 @@ export default async function MyLeavePage({
       <h1 className="text-xl font-semibold text-ink mb-1">My Leave</h1>
       <p className="text-sm text-ink/50 mb-6">Apply for leave and track the status of your requests.</p>
 
-      {searchParams?.error && <p className="text-sm text-warn mb-4">{searchParams.error}</p>}
+      {searchParams?.error && <Alert>{searchParams.error}</Alert>}
 
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">
@@ -65,7 +67,7 @@ export default async function MyLeavePage({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-4 py-10 text-center text-ink/40">No leave applications yet.</td>
+                  <td colSpan={4} className="px-0 py-2"><EmptyState message="No leave applications yet." /></td>
                 </tr>
               )}
             </tbody>

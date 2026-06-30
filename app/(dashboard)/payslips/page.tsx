@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import Link from "next/link";
+import { EmptyState } from "@/components/empty-state";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -45,8 +46,8 @@ export default async function PayslipsLandingPage() {
               </li>
             ))
           ) : (
-            <li className="px-4 py-10 text-center text-ink/40">
-              No processed payroll runs yet.
+            <li className="px-4 py-2">
+              <EmptyState message="No processed payroll runs yet." />
             </li>
           )}
         </ul>

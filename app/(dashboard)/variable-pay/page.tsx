@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { allocateVariablePay, approveVariablePay } from "./actions";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function VariablePayPage() {
   const supabase = createClient();
@@ -63,7 +64,7 @@ export default async function VariablePayPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-ink/40">No variable pay entries yet.</td>
+                  <td colSpan={6} className="px-0 py-2"><EmptyState message="No variable pay entries yet." /></td>
                 </tr>
               )}
             </tbody>

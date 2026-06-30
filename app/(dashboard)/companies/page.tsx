@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function CompaniesPage() {
   const supabase = createClient();
@@ -56,9 +57,7 @@ export default async function CompaniesPage() {
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="px-5 py-10 text-center text-ink/40">
-                  No companies yet. Add your first company to get started.
-                </td>
+                <td colSpan={5} className="px-0 py-2"><EmptyState message="No companies yet. Add your first company to get started." /></td>
               </tr>
             )}
           </tbody>

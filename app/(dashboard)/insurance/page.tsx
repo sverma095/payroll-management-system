@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { addPolicy } from "./actions";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function InsurancePage() {
   const supabase = createClient();
@@ -36,7 +37,7 @@ export default async function InsurancePage() {
                   <td className="px-4 py-2.5 text-right font-mono">{Number(r.sum_insured).toLocaleString("en-IN")}</td>
                   <td className="px-4 py-2.5 text-right font-mono">{Number(r.premium).toLocaleString("en-IN")}</td>
                 </tr>
-              )) : <tr><td colSpan={4} className="px-4 py-10 text-center text-ink/40">No policies yet.</td></tr>}
+              )) : <tr><td colSpan={4} className="px-0 py-2"><EmptyState message="No policies yet." /></td></tr>}
             </tbody>
           </table>
         </div>

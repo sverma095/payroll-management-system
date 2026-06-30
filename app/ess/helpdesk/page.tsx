@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { raiseTicket } from "./actions";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function MyHelpdeskPage() {
   const supabase = createClient();
@@ -16,7 +17,7 @@ export default async function MyHelpdeskPage() {
                 <td className="px-4 py-2.5 text-ink">{t.subject}</td>
                 <td className="px-4 py-2.5 text-ink/50">{t.status}</td>
               </tr>
-            )) : <tr><td className="px-4 py-10 text-center text-ink/40">No tickets yet.</td></tr>}
+            )) : <tr><td className="px-0 py-2"><EmptyState message="No tickets yet." /></td></tr>}
           </tbody></table>
         </div>
         <section className="bg-white border border-line rounded-xl p-5">

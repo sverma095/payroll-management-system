@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { addPerformanceRating } from "./actions";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function PerformancePage() {
   const supabase = createClient();
@@ -47,7 +48,7 @@ export default async function PerformancePage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="px-4 py-10 text-center text-ink/40">No ratings yet.</td>
+                  <td colSpan={3} className="px-0 py-2"><EmptyState message="No ratings yet." /></td>
                 </tr>
               )}
             </tbody>

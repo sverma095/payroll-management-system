@@ -1,4 +1,5 @@
 import { importAttendance } from "../actions";
+import { Alert } from "@/components/alert";
 
 export default function AttendanceImportPage({
   searchParams
@@ -24,7 +25,7 @@ export default function AttendanceImportPage({
           className="block w-full text-sm"
         />
 
-        {searchParams?.error && <p className="text-sm text-warn">{searchParams.error}</p>}
+        {searchParams?.error && <Alert>{searchParams.error}</Alert>}
 
         {searchParams?.imported !== undefined && (
           <div className="text-sm space-y-1">

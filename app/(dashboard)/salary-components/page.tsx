@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import Link from "next/link";
+import { EmptyState } from "@/components/empty-state";
 
 const TYPE_LABEL: Record<string, string> = {
   earning: "Earning",
@@ -63,9 +64,7 @@ export default async function SalaryComponentsPage() {
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-5 py-10 text-center text-ink/40">
-                  No components yet. Start with Basic, HRA and PF.
-                </td>
+                <td colSpan={6} className="px-0 py-2"><EmptyState message="No components yet. Start with Basic, HRA and PF." /></td>
               </tr>
             )}
           </tbody>

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function TaxDeclarationsAdminPage() {
   const supabase = createClient();
@@ -22,7 +23,7 @@ export default async function TaxDeclarationsAdminPage() {
               <td className="px-4 py-2.5 text-right font-mono">{Number(r.declared_amount).toLocaleString("en-IN")}</td>
               <td className="px-4 py-2.5 text-ink/50">{r.status}</td>
             </tr>
-          )) : <tr><td colSpan={5} className="px-4 py-10 text-center text-ink/40">No declarations yet.</td></tr>}
+          )) : <tr><td colSpan={5} className="px-0 py-2"><EmptyState message="No declarations yet." /></td></tr>}
         </tbody></table>
       </div>
     </div>

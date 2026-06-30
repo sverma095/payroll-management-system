@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import Link from "next/link";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function SalaryStructurePage() {
   const supabase = createClient();
@@ -61,9 +62,7 @@ export default async function SalaryStructurePage() {
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="px-5 py-10 text-center text-ink/40">
-                  No salary structures yet.
-                </td>
+                <td colSpan={4} className="px-0 py-2"><EmptyState message="No salary structures yet." /></td>
               </tr>
             )}
           </tbody>

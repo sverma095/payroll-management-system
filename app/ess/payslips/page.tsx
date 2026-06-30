@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { EmptyState } from "@/components/empty-state";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -36,7 +37,7 @@ export default async function MyPayslipsPage() {
               </li>
             ))
           ) : (
-            <li className="px-4 py-10 text-center text-ink/40">No payslips yet.</li>
+            <li className="px-4 py-2"><EmptyState message="No payslips yet." /></li>
           )}
         </ul>
       </div>

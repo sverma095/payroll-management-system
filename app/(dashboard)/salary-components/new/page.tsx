@@ -1,4 +1,5 @@
 import { createSalaryComponent } from "../actions";
+import { Alert } from "@/components/alert";
 
 export default function NewSalaryComponentPage({
   searchParams
@@ -41,7 +42,7 @@ export default function NewSalaryComponentPage({
           <label className="flex items-center gap-1.5"><input type="checkbox" name="esi_applicable" /> ESI applicable</label>
         </div>
 
-        {searchParams?.error && <p className="text-sm text-warn">{searchParams.error}</p>}
+        {searchParams?.error && <Alert>{searchParams.error}</Alert>}
 
         <div className="pt-2">
           <button type="submit" className="rounded-lg bg-accent text-white text-sm font-medium px-4 py-2.5 hover:bg-accent/90 transition-colors">

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { resolveTicket } from "./actions";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function HelpdeskPage() {
   const supabase = createClient();
@@ -23,7 +24,7 @@ export default async function HelpdeskPage() {
                 {t.status === "open" && <form action={resolveTicket}><input type="hidden" name="id" value={t.id} /><button className="text-xs text-accent hover:underline">Resolve</button></form>}
               </td>
             </tr>
-          )) : <tr><td className="px-4 py-10 text-center text-ink/40">No tickets yet.</td></tr>}
+          )) : <tr><td className="px-0 py-2"><EmptyState message="No tickets yet." /></td></tr>}
         </tbody></table>
       </div>
     </div>

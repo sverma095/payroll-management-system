@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { decideReimbursement } from "./actions";
+import { EmptyState } from "@/components/empty-state";
 
 const STATUS_STYLE: Record<string, string> = {
   pending: "bg-accentSoft text-accent",
@@ -76,7 +77,7 @@ export default async function ReimbursementsPage() {
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-ink/40">No claims yet.</td>
+                <td colSpan={6} className="px-0 py-2"><EmptyState message="No claims yet." /></td>
               </tr>
             )}
           </tbody>
