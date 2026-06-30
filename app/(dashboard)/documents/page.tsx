@@ -6,7 +6,7 @@ export default async function DocumentsPage() {
   const supabase = createClient();
   const { companyId } = await resolveCompanyId(supabase);
   const [{ data: docs }, { data: employees }] = await Promise.all([
-    companyId ? supabase.from("documents").select("id, doc_name, doc_url, category, employees(employee_code)").eq("company_id", companyId).order("created_at", { ascending: false }) : Promise.resolve({ data: [] as any[] }),
+    companyId ? supabase.from("documents").select("id, doc_name, doc_url, category, expiry_date, employees(employee_code)").eq("company_id", companyId).order("created_at", { ascending: false }) : Promise.resolve({ data: [] as any[] }),
     companyId ? supabase.from("employees").select("id, employee_code, first_name").eq("company_id", companyId) : Promise.resolve({ data: [] as any[] })
   ]);
   return (
@@ -21,6 +21,11 @@ export default async function DocumentsPage() {
                 <td className="px-4 py-2.5 text-ink">{d.doc_name}</td>
                 <td className="px-4 py-2.5 text-ink/50">{d.category}</td>
                 <td className="px-4 py-2.5 text-ink/50">{d.employees?.employee_code ?? "Company-wide"}</td>
+                <td className="px-4 py-2.5 text-xs">
+                  {d.expiry_date ? (
+                    <span className={new Date(d.expiry_date) < new Date(Date.now() + 30 * 86400000) ? "text-warn" : "text-ink/50"}>{d.expiry_date}</span>
+                  ) : "—"}
+                </td>
                 <td className="px-4 py-2.5"><a href={d.doc_url} target="_blank" className="text-accent hover:underline">Open</a></td>
                 <td className="px-4 py-2.5"><form action={deleteDocument}><input type="hidden" name="id" value={d.id} /><button className="text-xs text-warn hover:underline">Delete</button></form></td>
               </tr>
@@ -34,6 +39,8 @@ export default async function DocumentsPage() {
             <input type="file" name="file" className="block w-full text-xs" />
             <p className="text-xs text-ink/40">or paste a URL instead:</p>
             <input name="doc_url" placeholder="URL" className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs" />
+            <label className="block text-xs text-ink/50">Expiry date (optional)</label>
+            <input name="expiry_date" type="date" className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs" />
             <select name="category" className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs bg-white">
               <option value="general">General</option>
               <option value="policy">Policy</option>

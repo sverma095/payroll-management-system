@@ -24,7 +24,8 @@ export async function addDocument(formData: FormData) {
     employee_id: String(formData.get("employee_id") ?? "") || null,
     doc_name: String(formData.get("doc_name") ?? ""),
     doc_url,
-    category: String(formData.get("category") ?? "general")
+    category: String(formData.get("category") ?? "general"),
+    expiry_date: String(formData.get("expiry_date") ?? "") || null
   });
   revalidatePath("/documents");
 }

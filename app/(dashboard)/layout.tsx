@@ -32,6 +32,7 @@ const NAV = [
   { href: "/workflows", label: "Workflows" },
   { href: "/compliance-calendar", label: "Compliance Calendar" },
   { href: "/holidays", label: "Holidays" },
+  { href: "/tax-declarations", label: "Tax Declarations" },
   { href: "/pt-slabs", label: "PT Slabs" },
   { href: "/reports", label: "Reports" },
   { href: "/settings", label: "Settings" }

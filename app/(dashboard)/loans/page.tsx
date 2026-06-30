@@ -50,7 +50,7 @@ export default async function LoansPage({
                 loans.map((l: any) => (
                   <tr key={l.id} className="border-b border-line last:border-0">
                     <td className="px-4 py-2.5 text-ink">
-                      {l.employees?.employee_code} — {l.employees?.first_name} {l.employees?.last_name ?? ""}
+                      <a href={`/loans/${l.id}`} className="text-accent hover:underline">{l.employees?.employee_code} — {l.employees?.first_name} {l.employees?.last_name ?? ""}</a>
                     </td>
                     <td className="px-4 py-2.5 text-right font-mono">{Number(l.loan_amount).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-2.5 text-right font-mono">{Number(l.emi_amount).toLocaleString("en-IN")}</td>

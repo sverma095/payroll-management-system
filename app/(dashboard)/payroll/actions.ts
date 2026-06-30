@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { runPayroll } from "@/lib/payroll/process";
+import { sendEmail } from "@/lib/email/send";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -31,6 +32,14 @@ export async function processPayroll(formData: FormData) {
     old_value_json: null,
     new_value_json: { year, month, processedCount: result.processedCount, headerId: result.headerId }
   });
+
+  if (user?.email) {
+    await sendEmail(
+      user.email,
+      `Payroll processed: ${month}/${year}`,
+      `<p>Payroll for ${month}/${year} processed successfully. ${result.processedCount} employees included.</p>`
+    );
+  }
 
   revalidatePath("/payroll");
   redirect(`/payroll?year=${year}&month=${month}`);

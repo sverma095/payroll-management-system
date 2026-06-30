@@ -3,6 +3,7 @@ import { computeStructure, ComponentFormula } from "@/lib/formula-engine";
 import { fetchMonthlyAttendanceSummary } from "@/lib/attendance/summary";
 import { getWorkingDaysExcludingHolidays } from "@/lib/attendance/working-days";
 import { estimateMonthlyTDS } from "./tds-estimator";
+import { estimateOldRegimeMonthlyTDS } from "@/lib/tax/old-regime";
 
 export interface PayrollIssue {
   employeeId: string;
@@ -174,6 +175,14 @@ export async function runPayroll(
     return { ok: false, issues: [{ employeeId: "", employeeCode: "", message: headerError?.message ?? "Could not create payroll header" }], processedCount: 0, headerId: null };
   }
 
+  const fy = month >= 4 ? `${year}-${String(year + 1).slice(2)}` : `${year - 1}-${String(year).slice(2)}`;
+  const { data: declarations } = await supabase
+    .from("tax_declarations")
+    .select("employee_id, regime, declared_amount")
+    .in("employee_id", employeeIds)
+    .eq("financial_year", fy);
+  const declarationByEmployee = new Map((declarations ?? []).map((d) => [d.employee_id, d]));
+
   const detailRows: Record<string, unknown>[] = [];
   const loanDeductionsApplied: { id: string; amount: number; newBalance: number }[] = [];
   const variablePayPaid: string[] = [];
@@ -202,7 +211,12 @@ export async function runPayroll(
     const esi = byCode("ESI");
     const pt = byCode("PT");
     const lwf = byCode("LWF");
-    const tds = hasComponent("TDS") ? byCode("TDS") : estimateMonthlyTDS(proratedGross * 12);
+    const declaration = declarationByEmployee.get(e.id);
+    const tds = hasComponent("TDS")
+      ? byCode("TDS")
+      : declaration?.regime === "old"
+      ? estimateOldRegimeMonthlyTDS(proratedGross * 12, Number(declaration.declared_amount ?? 0))
+      : estimateMonthlyTDS(proratedGross * 12);
 
     const otherDeductions = components
       .filter((c) => c.type === "deduction" && !["PF", "ESI", "PT", "LWF", "TDS"].includes(c.code.toUpperCase()))
