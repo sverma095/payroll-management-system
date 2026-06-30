@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import Link from "next/link";
+import { EmptyState } from "@/components/empty-state";
+import { UserPlus } from "lucide-react";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -102,8 +104,8 @@ export default async function EmployeesPage({
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-5 py-10 text-center text-ink/40">
-                  {q ? "No employees match that search." : "No employees yet. Add your first employee to get started."}
+                <td colSpan={6} className="px-5 py-2">
+                  <EmptyState message={q ? "No employees match that search." : "No employees yet. Add your first employee to get started."} icon={UserPlus} />
                 </td>
               </tr>
             )}
