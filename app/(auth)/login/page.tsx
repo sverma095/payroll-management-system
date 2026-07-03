@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { signIn } from "./actions";
 
 export default function LoginPage({
@@ -60,6 +61,15 @@ export default function LoginPage({
           >
             Sign in
           </button>
+
+          <div className="flex items-center justify-between text-xs pt-1">
+            <Link href="/forgot-password" className="text-accent hover:underline">
+              Forgot password?
+            </Link>
+            <Link href="/signup" className="text-accent hover:underline">
+              Have an invite code?
+            </Link>
+          </div>
         </form>
 
         <p className="text-xs text-center text-ink/40 mt-6">

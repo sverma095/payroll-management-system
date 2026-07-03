@@ -32,7 +32,14 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith("/login");
+  const publicPrefixes = [
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/auth/callback"
+  ];
+  const isAuthRoute = publicPrefixes.some((p) => request.nextUrl.pathname.startsWith(p));
   const isPublicAsset = request.nextUrl.pathname.startsWith("/_next");
 
   if (!user && !isAuthRoute && !isPublicAsset) {
@@ -41,7 +48,10 @@ export async function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
-  if (user && isAuthRoute) {
+  // reset-password needs a logged-in (recovery) session to set the new
+  // password, so — unlike the other auth routes — it should NOT bounce an
+  // authenticated user back to /dashboard.
+  if (user && isAuthRoute && request.nextUrl.pathname !== "/reset-password") {
     const redirectResponse = NextResponse.redirect(new URL("/dashboard", request.url));
     response.cookies.getAll().forEach((c) => redirectResponse.cookies.set(c));
     return redirectResponse;
