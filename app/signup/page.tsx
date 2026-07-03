@@ -4,7 +4,7 @@ import { signUp } from "./actions";
 export default function SignupPage({
   searchParams
 }: {
-  searchParams: { error?: string; sent?: string };
+  searchParams: { error?: string; sent?: string; code?: string };
 }) {
   if (searchParams?.sent) {
     return (
@@ -59,6 +59,7 @@ export default function SignupPage({
               type="text"
               name="invite_code"
               required
+              defaultValue={searchParams?.code ?? ""}
               placeholder="e.g. INV-4F82A1"
               className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
             />

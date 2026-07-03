@@ -3,9 +3,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { PAN_REGEX, IFSC_REGEX, UAN_REGEX } from "@/lib/validators/india";
 import { isValidAadhaar } from "@/lib/validators/aadhaar";
+import { generateInviteCode } from "@/lib/invite-code";
 
 const employeeSchema = z.object({
   employee_code: z.string().min(1, "Employee code is required"),
@@ -123,4 +125,35 @@ export async function createEmployee(formData: FormData) {
   });
 
   redirect("/employees");
+}
+
+export async function generateInvite(formData: FormData) {
+  const employeeId = String(formData.get("employee_id") ?? "");
+  if (!employeeId) return;
+
+  const supabase = createClient();
+
+  // Reuse a still-unused code instead of piling up dead invites every time
+  // the admin re-opens the page.
+  const { data: existing } = await supabase
+    .from("invites")
+    .select("id")
+    .eq("employee_id", employeeId)
+    .eq("used", false)
+    .maybeSingle();
+
+  if (!existing) {
+    await supabase.from("invites").insert({ employee_id: employeeId, code: generateInviteCode() });
+  }
+
+  revalidatePath("/employees");
+}
+
+export async function revokeInvite(formData: FormData) {
+  const inviteId = String(formData.get("invite_id") ?? "");
+  if (!inviteId) return;
+
+  const supabase = createClient();
+  await supabase.from("invites").delete().eq("id", inviteId).eq("used", false);
+  revalidatePath("/employees");
 }

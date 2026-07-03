@@ -2,7 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
+import { CopyButton } from "@/components/copy-button";
 import { UserPlus } from "lucide-react";
+import { generateInvite, revokeInvite } from "./actions";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -39,6 +41,20 @@ export default async function EmployeesPage({
   }
 
   const { data: employees } = await query;
+  const employeeIds = (employees ?? []).map((e: any) => e.id);
+
+  const [{ data: invites }, { data: essUsers }] = await Promise.all([
+    employeeIds.length
+      ? supabase.from("invites").select("id, employee_id, code, used").in("employee_id", employeeIds).eq("used", false)
+      : Promise.resolve({ data: [] as any[] }),
+    employeeIds.length
+      ? supabase.from("app_users").select("employee_id").in("employee_id", employeeIds)
+      : Promise.resolve({ data: [] as any[] })
+  ]);
+
+  const inviteByEmployee = new Map((invites ?? []).map((i: any) => [i.employee_id, i]));
+  const essActiveEmployees = new Set((essUsers ?? []).map((u: any) => u.employee_id));
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
   return (
     <div className="p-8">
@@ -82,6 +98,7 @@ export default async function EmployeesPage({
               <th className="px-5 py-3 font-medium">Designation</th>
               <th className="px-5 py-3 font-medium font-mono">PAN</th>
               <th className="px-5 py-3 font-medium">Status</th>
+              <th className="px-5 py-3 font-medium">ESS access</th>
             </tr>
           </thead>
           <tbody>
@@ -100,11 +117,43 @@ export default async function EmployeesPage({
                       {STATUS_LABEL[e.status] ?? e.status}
                     </span>
                   </td>
+                  <td className="px-5 py-3">
+                    {essActiveEmployees.has(e.id) ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-accentSoft text-accent">
+                        Active
+                      </span>
+                    ) : inviteByEmployee.has(e.id) ? (
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs text-ink/70">
+                          {inviteByEmployee.get(e.id).code}
+                        </span>
+                        <CopyButton
+                          text={`${siteUrl}/signup?code=${inviteByEmployee.get(e.id).code}`}
+                        />
+                        <form action={revokeInvite}>
+                          <input type="hidden" name="invite_id" value={inviteByEmployee.get(e.id).id} />
+                          <button type="submit" className="text-xs text-ink/40 hover:text-warn">
+                            Revoke
+                          </button>
+                        </form>
+                      </div>
+                    ) : (
+                      <form action={generateInvite}>
+                        <input type="hidden" name="employee_id" value={e.id} />
+                        <button
+                          type="submit"
+                          className="text-xs text-accent hover:underline"
+                        >
+                          Generate invite
+                        </button>
+                      </form>
+                    )}
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-5 py-2">
+                <td colSpan={7} className="px-5 py-2">
                   <EmptyState message={q ? "No employees match that search." : "No employees yet. Add your first employee to get started."} icon={UserPlus} />
                 </td>
               </tr>
