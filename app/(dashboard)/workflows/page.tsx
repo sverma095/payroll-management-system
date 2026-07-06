@@ -12,7 +12,7 @@ export default async function WorkflowsPage() {
   return (
     <div className="p-8">
       <h1 className="text-xl font-semibold text-ink mb-1">Workflows</h1>
-      <p className="text-sm text-ink/50 mb-6">Define multi-step approval chains. Definitions only — not yet enforced by every module.</p>
+      <p className="text-sm text-ink/50 mb-6">Define multi-step approval chains. Enforced for Leave; Reimbursement, Variable Pay and other modules still resolve in a single step regardless of what's defined here.</p>
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 space-y-4">
           {(workflows ?? []).map((w: any) => (

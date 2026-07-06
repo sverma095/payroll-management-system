@@ -30,6 +30,23 @@ export default async function LeavePage({
       : Promise.resolve({ data: [] as any[] })
   ]);
 
+  const applicationIds = (applications ?? []).map((a: any) => a.id);
+  const { data: approvalRows } = applicationIds.length
+    ? await supabase
+        .from("workflow_approvals")
+        .select("entity_id, step_no, approver_role, approved")
+        .eq("entity_type", "leave")
+        .in("entity_id", applicationIds)
+        .order("step_no")
+    : { data: [] as any[] };
+
+  const stepsByApplication = new Map<string, any[]>();
+  (approvalRows ?? []).forEach((r: any) => {
+    const list = stepsByApplication.get(r.entity_id) ?? [];
+    list.push(r);
+    stepsByApplication.set(r.entity_id, list);
+  });
+
   return (
     <div className="p-8">
       <h1 className="text-xl font-semibold text-ink mb-1">Leave</h1>
@@ -66,6 +83,18 @@ export default async function LeavePage({
                       <td className="px-4 py-2.5 text-ink/70">{formatDate(a.to_date)}</td>
                       <td className="px-4 py-2.5">
                         <StatusBadge status={a.status} />
+                        {(() => {
+                          const steps = stepsByApplication.get(a.id);
+                          if (!steps || steps.length === 0) return null;
+                          const current = steps.find((s) => !s.approved);
+                          return (
+                            <p className="text-[11px] text-ink/40 mt-1">
+                              {current
+                                ? `Step ${current.step_no}/${steps.length}: ${current.approver_role}`
+                                : `All ${steps.length} step(s) signed off`}
+                            </p>
+                          );
+                        })()}
                       </td>
                       <td className="px-4 py-2.5">
                         {a.status === "pending" && (
