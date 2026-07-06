@@ -2,13 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { applyMyLeave } from "./actions";
 import { Alert } from "@/components/alert";
 import { EmptyState } from "@/components/empty-state";
-
-const STATUS_STYLE: Record<string, string> = {
-  pending: "bg-accentSoft text-accent",
-  approved: "bg-accentSoft text-accent",
-  rejected: "bg-warn/10 text-warn",
-  cancelled: "bg-ink/5 text-ink/50"
-};
+import { StatusBadge } from "@/components/status-badge";
+import { formatDate } from "@/lib/format";
 
 export default async function MyLeavePage({
   searchParams
@@ -56,12 +51,10 @@ export default async function MyLeavePage({
                 applications.map((a: any) => (
                   <tr key={a.id} className="border-b border-line last:border-0">
                     <td className="px-4 py-2.5 text-ink">{a.leave_types?.leave_name}</td>
-                    <td className="px-4 py-2.5 text-ink/70">{a.from_date}</td>
-                    <td className="px-4 py-2.5 text-ink/70">{a.to_date}</td>
+                    <td className="px-4 py-2.5 text-ink/70">{formatDate(a.from_date)}</td>
+                    <td className="px-4 py-2.5 text-ink/70">{formatDate(a.to_date)}</td>
                     <td className="px-4 py-2.5">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs capitalize ${STATUS_STYLE[a.status] ?? ""}`}>
-                        {a.status}
-                      </span>
+                      <StatusBadge status={a.status} />
                     </td>
                   </tr>
                 ))

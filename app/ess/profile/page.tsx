@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
+import { StatusBadge } from "@/components/status-badge";
+import { formatDate } from "@/lib/format";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -56,8 +58,11 @@ export default async function MyProfilePage() {
           <dl className="space-y-2 text-sm">
             <Row label="Employee code" value={e.employee_code} mono />
             <Row label="Branch" value={e.branches?.branch_name ?? "—"} />
-            <Row label="Date of joining" value={e.doj} />
-            <Row label="Status" value={STATUS_LABEL[e.status] ?? e.status} />
+            <Row label="Date of joining" value={formatDate(e.doj)} />
+            <div className="flex justify-between items-center">
+              <dt className="text-ink/50">Status</dt>
+              <dd><StatusBadge status={e.status} label={STATUS_LABEL[e.status] ?? e.status} /></dd>
+            </div>
           </dl>
         </section>
 

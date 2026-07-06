@@ -15,6 +15,7 @@ const TONE_BY_STATUS: Record<string, StatusTone> = {
   open: "caution",
   approved: "positive",
   processed: "positive",
+  resolved: "positive",
   locked: "neutral",
   rejected: "critical",
   cancelled: "neutral",

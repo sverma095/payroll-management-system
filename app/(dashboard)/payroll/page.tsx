@@ -1,19 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { processPayroll, approvePayroll, lockPayroll } from "./actions";
+import { StatusBadge } from "@/components/status-badge";
 import Link from "next/link";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
-
-const STATUS_STYLE: Record<string, string> = {
-  draft: "bg-ink/5 text-ink/50",
-  processed: "bg-accentSoft text-accent",
-  approved: "bg-accentSoft text-accent",
-  locked: "bg-warn/10 text-warn"
-};
 
 export default async function PayrollPage({
   searchParams
@@ -42,10 +36,14 @@ export default async function PayrollPage({
   const totals = (details ?? []).reduce(
     (acc, d: any) => ({
       gross: acc.gross + Number(d.gross_salary),
-      deduction: acc.deduction + Number(d.total_deduction),
+      pf: acc.pf + Number(d.pf ?? 0),
+      esi: acc.esi + Number(d.esi ?? 0),
+      pt: acc.pt + Number(d.pt ?? 0),
+      lwf: acc.lwf + Number(d.lwf ?? 0),
+      tds: acc.tds + Number(d.tds ?? 0),
       net: acc.net + Number(d.net_salary)
     }),
-    { gross: 0, deduction: 0, net: 0 }
+    { gross: 0, pf: 0, esi: 0, pt: 0, lwf: 0, tds: 0, net: 0 }
   );
 
   return (
@@ -57,11 +55,7 @@ export default async function PayrollPage({
             Attendance → leave → formula engine → PF/ESI/PT/LWF/TDS → validation → approval → lock.
           </p>
         </div>
-        {header && (
-          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs capitalize ${STATUS_STYLE[header.status] ?? ""}`}>
-            {header.status}
-          </span>
-        )}
+        {header && <StatusBadge status={header.status} />}
       </div>
 
       <form method="get" className="flex gap-3 mb-4">
@@ -174,8 +168,11 @@ export default async function PayrollPage({
                   <tr className="border-t-2 border-line font-medium">
                     <td className="px-4 py-2.5">Total</td>
                     <td className="px-4 py-2.5 text-right font-mono">{totals.gross.toLocaleString("en-IN")}</td>
-                    <td colSpan={4}></td>
-                    <td className="px-4 py-2.5 text-right font-mono">{totals.deduction.toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-2.5 text-right font-mono text-ink/60">{totals.pf.toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-2.5 text-right font-mono text-ink/60">{totals.esi.toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-2.5 text-right font-mono text-ink/60">{totals.pt.toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-2.5 text-right font-mono text-ink/60">{totals.lwf.toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-2.5 text-right font-mono text-ink/60">{totals.tds.toLocaleString("en-IN")}</td>
                     <td className="px-4 py-2.5 text-right font-mono">{totals.net.toLocaleString("en-IN")}</td>
                     <td></td>
                   </tr>

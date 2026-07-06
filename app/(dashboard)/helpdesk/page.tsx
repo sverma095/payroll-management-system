@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { resolveTicket } from "./actions";
 import { EmptyState } from "@/components/empty-state";
+import { StatusBadge } from "@/components/status-badge";
 
 export default async function HelpdeskPage() {
   const supabase = createClient();
@@ -19,7 +20,7 @@ export default async function HelpdeskPage() {
             <tr key={t.id} className="border-b border-line last:border-0">
               <td className="px-4 py-2.5 text-ink">{t.employees?.employee_code} — {t.employees?.first_name}</td>
               <td className="px-4 py-2.5 text-ink">{t.subject}</td>
-              <td className="px-4 py-2.5 text-ink/50">{t.status}</td>
+              <td className="px-4 py-2.5"><StatusBadge status={t.status} /></td>
               <td className="px-4 py-2.5">
                 {t.status === "open" && <form action={resolveTicket}><input type="hidden" name="id" value={t.id} /><button className="text-xs text-accent hover:underline">Resolve</button></form>}
               </td>

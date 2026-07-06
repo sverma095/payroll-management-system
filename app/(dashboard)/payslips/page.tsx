@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
+import { StatusBadge } from "@/components/status-badge";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -41,7 +42,7 @@ export default async function PayslipsLandingPage() {
                   className="flex items-center justify-between px-4 py-3 text-sm hover:bg-accentSoft transition-colors"
                 >
                   <span className="text-ink">{MONTHS[h.month - 1]} {h.year}</span>
-                  <span className="text-ink/40 capitalize">{h.status}</span>
+                  <StatusBadge status={h.status} />
                 </Link>
               </li>
             ))

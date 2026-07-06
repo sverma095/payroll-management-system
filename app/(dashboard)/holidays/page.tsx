@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { addHoliday, deleteHoliday } from "./actions";
 import { EmptyState } from "@/components/empty-state";
+import { formatDate } from "@/lib/format";
 
 export default async function HolidaysPage() {
   const supabase = createClient();
@@ -15,10 +16,18 @@ export default async function HolidaysPage() {
       <p className="text-sm text-ink/50 mb-6">Holidays here are excluded from working days in LOP/payroll calculations.</p>
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">
-          <table className="w-full text-sm"><tbody>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-line text-left text-ink/50">
+                <th className="px-4 py-2.5 font-medium">Date</th>
+                <th className="px-4 py-2.5 font-medium">Holiday</th>
+                <th className="px-4 py-2.5 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody>
             {holidays && holidays.length > 0 ? holidays.map((h: any) => (
               <tr key={h.id} className="border-b border-line last:border-0">
-                <td className="px-4 py-2.5 font-mono text-ink/70">{h.holiday_date}</td>
+                <td className="px-4 py-2.5 font-mono text-ink/70">{formatDate(h.holiday_date)}</td>
                 <td className="px-4 py-2.5 text-ink">{h.name}</td>
                 <td className="px-4 py-2.5"><form action={deleteHoliday}><input type="hidden" name="id" value={h.id} /><button className="text-xs text-warn hover:underline">Delete</button></form></td>
               </tr>

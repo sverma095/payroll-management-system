@@ -2,13 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { decideReimbursement } from "./actions";
 import { EmptyState } from "@/components/empty-state";
-
-const STATUS_STYLE: Record<string, string> = {
-  pending: "bg-accentSoft text-accent",
-  approved: "bg-accentSoft text-accent",
-  rejected: "bg-warn/10 text-warn",
-  paid: "bg-ink/5 text-ink/50"
-};
+import { StatusBadge } from "@/components/status-badge";
 
 export default async function ReimbursementsPage() {
   const supabase = createClient();
@@ -52,9 +46,7 @@ export default async function ReimbursementsPage() {
                   <td className="px-4 py-2.5 text-right font-mono">{Number(c.claim_amount).toLocaleString("en-IN")}</td>
                   <td className="px-4 py-2.5 text-right font-mono">{Number(c.approved_amount ?? 0).toLocaleString("en-IN")}</td>
                   <td className="px-4 py-2.5">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs capitalize ${STATUS_STYLE[c.status] ?? ""}`}>
-                      {c.status}
-                    </span>
+                    <StatusBadge status={c.status} />
                   </td>
                   <td className="px-4 py-2.5">
                     {c.status === "pending" && (

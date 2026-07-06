@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { EmptyState } from "@/components/empty-state";
+import { formatDate } from "@/lib/format";
 
 export default async function SalaryHistoryPage() {
   const supabase = createClient();
@@ -36,7 +37,7 @@ export default async function SalaryHistoryPage() {
               <tr key={i} className="border-b border-line last:border-0">
                 <td className="px-4 py-2.5 text-ink">{r.employees?.employee_code} — {r.employees?.first_name} {r.employees?.last_name ?? ""}</td>
                 <td className="px-4 py-2.5 text-right font-mono">{Number(r.monthly_gross).toLocaleString("en-IN")}</td>
-                <td className="px-4 py-2.5 text-ink/70">{r.effective_from}</td>
+                <td className="px-4 py-2.5 text-ink/70">{formatDate(r.effective_from)}</td>
                 <td className="px-4 py-2.5 text-ink/70">{r.effective_to ?? <span className="text-accent">current</span>}</td>
               </tr>
             )) : <tr><td colSpan={4} className="px-0 py-2"><EmptyState message="No salary history yet." /></td></tr>}

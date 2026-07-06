@@ -3,11 +3,7 @@ import { resolveCompanyId } from "@/lib/current-company";
 import { initiateFullAndFinal, approveFullAndFinal } from "./actions";
 import { Alert } from "@/components/alert";
 import { EmptyState } from "@/components/empty-state";
-
-const STATUS_STYLE: Record<string, string> = {
-  draft: "bg-ink/5 text-ink/50",
-  approved: "bg-accentSoft text-accent"
-};
+import { StatusBadge } from "@/components/status-badge";
 
 export default async function FullAndFinalPage({
   searchParams
@@ -74,9 +70,7 @@ export default async function FullAndFinalPage({
                     <td className="px-4 py-2.5 text-right font-mono text-warn">{Number(s.recoveries) + Number(s.notice_pay)}</td>
                     <td className="px-4 py-2.5 text-right font-mono font-medium">{Number(s.net_payable).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-2.5">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs capitalize ${STATUS_STYLE[s.status] ?? ""}`}>
-                        {s.status}
-                      </span>
+                      <StatusBadge status={s.status} />
                     </td>
                     <td className="px-4 py-2.5">
                       {s.status === "draft" && (

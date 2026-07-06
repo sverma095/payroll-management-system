@@ -3,6 +3,7 @@ import { resolveCompanyId } from "@/lib/current-company";
 import { issueLoan, recordManualRepayment } from "./actions";
 import { Alert } from "@/components/alert";
 import { EmptyState } from "@/components/empty-state";
+import { StatusBadge } from "@/components/status-badge";
 
 export default async function LoansPage({
   searchParams
@@ -58,9 +59,7 @@ export default async function LoansPage({
                     <td className="px-4 py-2.5 text-right font-mono">{Number(l.emi_amount).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-2.5 text-right font-mono">{Number(l.outstanding_balance).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-2.5">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs capitalize ${l.status === "active" ? "bg-accentSoft text-accent" : "bg-ink/5 text-ink/50"}`}>
-                        {l.status}
-                      </span>
+                      <StatusBadge status={l.status} />
                     </td>
                     <td className="px-4 py-2.5">
                       {l.status === "active" && (

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
+import { StatusBadge } from "@/components/status-badge";
 
 export default async function CompaniesPage() {
   const supabase = createClient();
@@ -49,9 +50,7 @@ export default async function CompaniesPage() {
                     {c.gstin ?? "—"}
                   </td>
                   <td className="px-5 py-3">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-accentSoft text-accent capitalize">
-                      {c.status}
-                    </span>
+                    <StatusBadge status={c.status} />
                   </td>
                 </tr>
               ))

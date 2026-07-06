@@ -5,6 +5,7 @@ import { StructureCalculator } from "@/components/structure-calculator";
 import { notFound } from "next/navigation";
 import { Alert } from "@/components/alert";
 import { EmptyState } from "@/components/empty-state";
+import { formatDate } from "@/lib/format";
 
 export default async function StructureDetailPage({
   params,
@@ -47,8 +48,8 @@ export default async function StructureDetailPage({
     <div className="p-8">
       <h1 className="text-xl font-semibold text-ink mb-1">{structure.structure_name}</h1>
       <p className="text-sm text-ink/50 mb-6">
-        Effective {structure.effective_from}
-        {structure.effective_to ? ` – ${structure.effective_to}` : " onward"}
+        Effective {formatDate(structure.effective_from)}
+        {structure.effective_to ? ` – ${formatDate(structure.effective_to)}` : " onward"}
       </p>
 
       <div className="grid grid-cols-2 gap-6">

@@ -15,12 +15,23 @@ export default async function PtSlabsPage() {
       <p className="text-sm text-ink/50 mb-6">Enter your state's official slabs — reference for setting up the PT formula in Salary Structure (not auto-applied).</p>
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">
-          <table className="w-full text-sm"><tbody>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-line text-left text-ink/50">
+                <th className="px-4 py-2.5 font-medium">State</th>
+                <th className="px-4 py-2.5 font-medium">Gross salary range</th>
+                <th className="px-4 py-2.5 font-medium text-right">PT amount</th>
+                <th className="px-4 py-2.5 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody>
             {slabs && slabs.length > 0 ? slabs.map((s: any) => (
               <tr key={s.id} className="border-b border-line last:border-0">
                 <td className="px-4 py-2.5 text-ink">{s.state}</td>
-                <td className="px-4 py-2.5 text-ink/70 font-mono">{s.min_gross}-{s.max_gross ?? "no limit"}</td>
-                <td className="px-4 py-2.5 text-right font-mono">{s.pt_amount}</td>
+                <td className="px-4 py-2.5 text-ink/70 font-mono">
+                  ₹{Number(s.min_gross).toLocaleString("en-IN")}–{s.max_gross ? `₹${Number(s.max_gross).toLocaleString("en-IN")}` : "no limit"}
+                </td>
+                <td className="px-4 py-2.5 text-right font-mono">₹{Number(s.pt_amount).toLocaleString("en-IN")}</td>
                 <td className="px-4 py-2.5"><form action={deletePtSlab}><input type="hidden" name="id" value={s.id} /><button className="text-xs text-warn hover:underline">Delete</button></form></td>
               </tr>
             )) : <tr><td colSpan={4} className="px-0 py-2"><EmptyState message="No slabs added yet." /></td></tr>}

@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
+import { StatusBadge } from "@/components/status-badge";
+import { formatDate } from "@/lib/format";
 
 export default async function SalaryStructurePage() {
   const supabase = createClient();
@@ -51,12 +53,10 @@ export default async function SalaryStructurePage() {
                       {s.structure_name}
                     </Link>
                   </td>
-                  <td className="px-5 py-3 text-ink/70">{s.effective_from}</td>
-                  <td className="px-5 py-3 text-ink/70">{s.effective_to ?? "—"}</td>
+                  <td className="px-5 py-3 text-ink/70">{formatDate(s.effective_from)}</td>
+                  <td className="px-5 py-3 text-ink/70">{formatDate(s.effective_to)}</td>
                   <td className="px-5 py-3">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-accentSoft text-accent capitalize">
-                      {s.status}
-                    </span>
+                    <StatusBadge status={s.status} />
                   </td>
                 </tr>
               ))

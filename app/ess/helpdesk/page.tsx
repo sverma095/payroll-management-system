@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { raiseTicket } from "./actions";
 import { EmptyState } from "@/components/empty-state";
+import { StatusBadge } from "@/components/status-badge";
 
 export default async function MyHelpdeskPage() {
   const supabase = createClient();
@@ -15,7 +16,7 @@ export default async function MyHelpdeskPage() {
             {tickets && tickets.length > 0 ? tickets.map((t: any) => (
               <tr key={t.id} className="border-b border-line last:border-0">
                 <td className="px-4 py-2.5 text-ink">{t.subject}</td>
-                <td className="px-4 py-2.5 text-ink/50">{t.status}</td>
+                <td className="px-4 py-2.5"><StatusBadge status={t.status} /></td>
               </tr>
             )) : <tr><td className="px-0 py-2"><EmptyState message="No tickets yet." /></td></tr>}
           </tbody></table>
