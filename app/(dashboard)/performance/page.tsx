@@ -2,8 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { addPerformanceRating } from "./actions";
 import { EmptyState } from "@/components/empty-state";
+import { Alert } from "@/components/alert";
 
-export default async function PerformancePage() {
+export default async function PerformancePage({ searchParams }: { searchParams: { error?: string } }) {
   const supabase = createClient();
   const { companyId } = await resolveCompanyId(supabase);
 
@@ -24,6 +25,7 @@ export default async function PerformancePage() {
     <div className="p-8">
       <h1 className="text-xl font-semibold text-ink mb-1">Performance Ratings</h1>
       <p className="text-sm text-ink/50 mb-6">Review history feeds informally into Variable Pay decisions.</p>
+      {searchParams?.error && <Alert>{searchParams.error}</Alert>}
 
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">

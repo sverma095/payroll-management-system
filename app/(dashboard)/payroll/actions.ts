@@ -12,7 +12,7 @@ export async function processPayroll(formData: FormData) {
   const month = Number(formData.get("month"));
 
   const supabase = createClient();
-  const { companyId } = await resolveCompanyId(supabase);
+  const { companyId, tenantId } = await resolveCompanyId(supabase);
   if (!companyId) {
     redirect(`/payroll?error=${encodeURIComponent("Create a company first")}`);
   }
@@ -27,6 +27,7 @@ export async function processPayroll(formData: FormData) {
 
   await supabase.from("audit_logs").insert({
     user_id: user?.id,
+    tenant_id: tenantId,
     module_name: "payroll_processing",
     action: "process_payroll",
     old_value_json: null,
@@ -48,6 +49,7 @@ export async function processPayroll(formData: FormData) {
 async function setPayrollStatus(headerId: string, status: "approved" | "locked", redirectQuery: string) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const { tenantId } = await resolveCompanyId(supabase);
 
   const update: Record<string, unknown> = { status };
   if (status === "approved") {
@@ -62,6 +64,7 @@ async function setPayrollStatus(headerId: string, status: "approved" | "locked",
 
   await supabase.from("audit_logs").insert({
     user_id: user?.id,
+    tenant_id: tenantId,
     module_name: "payroll_processing",
     action: `payroll_${status}`,
     old_value_json: null,

@@ -60,7 +60,7 @@ export async function createEmployee(formData: FormData) {
   const data = parsed.data!;
 
   const supabase = createClient();
-  const { companyId } = await resolveCompanyId(supabase);
+  const { companyId, tenantId } = await resolveCompanyId(supabase);
   if (!companyId) {
     redirect(`/employees/new?error=${encodeURIComponent("Create a company first")}`);
   }
@@ -118,6 +118,7 @@ export async function createEmployee(formData: FormData) {
 
   await supabase.from("audit_logs").insert({
     user_id: user?.id,
+    tenant_id: tenantId,
     module_name: "employee_management",
     action: "create_employee",
     old_value_json: null,

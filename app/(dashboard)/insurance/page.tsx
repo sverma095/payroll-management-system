@@ -2,8 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { addPolicy } from "./actions";
 import { EmptyState } from "@/components/empty-state";
+import { Alert } from "@/components/alert";
 
-export default async function InsurancePage() {
+export default async function InsurancePage({ searchParams }: { searchParams: { error?: string } }) {
   const supabase = createClient();
   const { companyId } = await resolveCompanyId(supabase);
 
@@ -20,6 +21,7 @@ export default async function InsurancePage() {
     <div className="p-8">
       <h1 className="text-xl font-semibold text-ink mb-1">Insurance</h1>
       <p className="text-sm text-ink/50 mb-6">Group/individual policy tracking.</p>
+      {searchParams?.error && <Alert>{searchParams.error}</Alert>}
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">
           <table className="w-full text-sm">

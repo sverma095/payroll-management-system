@@ -16,9 +16,27 @@ export default async function ComplianceDashboardPage() {
   const sum = (k: string) => (totals ?? []).reduce((s: number, r: any) => s + Number(r[k] ?? 0), 0);
 
   const [{ count: pendingLeave }, { count: pendingClaims }, { count: activeLoans }] = await Promise.all([
-    supabase.from("leave_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("reimbursements").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("loans").select("id", { count: "exact", head: true }).eq("status", "active")
+    companyId
+      ? supabase
+          .from("leave_applications")
+          .select("id, employees!inner(company_id)", { count: "exact", head: true })
+          .eq("status", "pending")
+          .eq("employees.company_id", companyId)
+      : Promise.resolve({ count: 0 }),
+    companyId
+      ? supabase
+          .from("reimbursements")
+          .select("id, employees!inner(company_id)", { count: "exact", head: true })
+          .eq("status", "pending")
+          .eq("employees.company_id", companyId)
+      : Promise.resolve({ count: 0 }),
+    companyId
+      ? supabase
+          .from("loans")
+          .select("id, employees!inner(company_id)", { count: "exact", head: true })
+          .eq("status", "active")
+          .eq("employees.company_id", companyId)
+      : Promise.resolve({ count: 0 })
   ]);
 
   const cards = [

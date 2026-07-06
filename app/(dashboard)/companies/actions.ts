@@ -90,6 +90,7 @@ export async function createCompany(formData: FormData) {
   // Acceptance criteria: audit log should be generated
   await supabase.from("audit_logs").insert({
     user_id: authData.user?.id,
+    tenant_id: appUser!.tenant_id,
     module_name: "company_management",
     action: "create_company",
     old_value_json: null,

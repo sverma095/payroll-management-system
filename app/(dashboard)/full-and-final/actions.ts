@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { resolveCompanyId } from "@/lib/current-company";
 import { computeFullAndFinal } from "@/lib/payroll/full-and-final";
 import { getComponentValue } from "@/lib/payroll/breakdown";
 import { redirect } from "next/navigation";
@@ -9,6 +10,7 @@ import { revalidatePath } from "next/cache";
 export async function initiateFullAndFinal(formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const { tenantId } = await resolveCompanyId(supabase);
 
   const employeeId = String(formData.get("employee_id") ?? "");
   const relievingDate = String(formData.get("relieving_date") ?? "");
@@ -85,6 +87,7 @@ export async function initiateFullAndFinal(formData: FormData) {
 
   await supabase.from("audit_logs").insert({
     user_id: user?.id,
+    tenant_id: tenantId,
     module_name: "full_and_final",
     action: "initiate_fnf",
     new_value_json: { employeeId, ...result }

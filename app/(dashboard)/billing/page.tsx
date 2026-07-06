@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { saveSubscription, saveBranding } from "./actions";
+import { Alert } from "@/components/alert";
 
-export default async function BillingPage() {
+export default async function BillingPage({ searchParams }: { searchParams: { error?: string } }) {
   const supabase = createClient();
   const { tenantId, companyId } = await resolveCompanyId(supabase);
 
@@ -22,6 +23,7 @@ export default async function BillingPage() {
     <div className="p-8 max-w-2xl">
       <h1 className="text-xl font-semibold text-ink mb-1">Billing &amp; White Labelling</h1>
       <p className="text-sm text-ink/50 mb-6">Subscription plan and per-company branding.</p>
+      {searchParams?.error && <Alert>{searchParams.error}</Alert>}
 
       <div className="grid grid-cols-2 gap-6">
         <section className="bg-white border border-line rounded-xl p-5">

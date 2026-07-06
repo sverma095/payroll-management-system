@@ -46,7 +46,7 @@ export default async function ReportsPage({
   const [year, month] = period.split("-").map(Number);
 
   const supabase = createClient();
-  const { companyId } = await resolveCompanyId(supabase);
+  const { companyId, tenantId } = await resolveCompanyId(supabase);
 
   let table: ReportTable | null = null;
   let auditRows: any[] = [];
@@ -81,10 +81,11 @@ export default async function ReportsPage({
     }
   }
 
-  if (report === "audit") {
+  if (report === "audit" && tenantId) {
     const { data } = await supabase
       .from("audit_logs")
       .select("created_at, module_name, action, user_id")
+      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
       .limit(50);
     auditRows = data ?? [];

@@ -1,12 +1,14 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { resolveCompanyId } from "@/lib/current-company";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 export async function issueLoan(formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const { tenantId } = await resolveCompanyId(supabase);
 
   const employee_id = String(formData.get("employee_id") ?? "");
   const loan_amount = Number(formData.get("loan_amount") ?? 0);
@@ -28,6 +30,7 @@ export async function issueLoan(formData: FormData) {
 
   await supabase.from("audit_logs").insert({
     user_id: user?.id,
+    tenant_id: tenantId,
     module_name: "loans",
     action: "issue_loan",
     new_value_json: { employee_id, loan_amount, interest_rate, emi_amount }

@@ -17,9 +17,15 @@ export default async function DashboardPage() {
     { data: currentHeader }
   ] = await Promise.all([
     companyId ? supabase.from("employees").select("id", { count: "exact", head: true }).eq("company_id", companyId).eq("status", "active") : Promise.resolve({ count: 0 }),
-    supabase.from("leave_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("reimbursements").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("helpdesk_tickets").select("id", { count: "exact", head: true }).eq("status", "open"),
+    companyId
+      ? supabase.from("leave_applications").select("id, employees!inner(company_id)", { count: "exact", head: true }).eq("status", "pending").eq("employees.company_id", companyId)
+      : Promise.resolve({ count: 0 }),
+    companyId
+      ? supabase.from("reimbursements").select("id, employees!inner(company_id)", { count: "exact", head: true }).eq("status", "pending").eq("employees.company_id", companyId)
+      : Promise.resolve({ count: 0 }),
+    companyId
+      ? supabase.from("helpdesk_tickets").select("id, employees!inner(company_id)", { count: "exact", head: true }).eq("status", "open").eq("employees.company_id", companyId)
+      : Promise.resolve({ count: 0 }),
     companyId
       ? supabase.from("payroll_headers").select("id, status").eq("company_id", companyId).eq("year", now.getFullYear()).eq("month", now.getMonth() + 1).maybeSingle()
       : Promise.resolve({ data: null })
