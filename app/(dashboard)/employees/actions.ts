@@ -147,6 +147,7 @@ export async function generateInvite(formData: FormData) {
   }
 
   revalidatePath("/employees");
+  redirect(`/employees?toast=${encodeURIComponent("Invite code generated")}`);
 }
 
 export async function revokeInvite(formData: FormData) {
@@ -156,4 +157,5 @@ export async function revokeInvite(formData: FormData) {
   const supabase = createClient();
   await supabase.from("invites").delete().eq("id", inviteId).eq("used", false);
   revalidatePath("/employees");
+  redirect(`/employees?toast=${encodeURIComponent("Invite revoked")}`);
 }

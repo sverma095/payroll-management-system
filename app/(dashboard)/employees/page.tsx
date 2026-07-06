@@ -3,6 +3,9 @@ import { resolveCompanyId } from "@/lib/current-company";
 import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
 import { CopyButton } from "@/components/copy-button";
+import { Avatar } from "@/components/avatar";
+import { StatusBadge } from "@/components/status-badge";
+import { Toast } from "@/components/toast";
 import { UserPlus } from "lucide-react";
 import { generateInvite, revokeInvite } from "./actions";
 
@@ -58,6 +61,7 @@ export default async function EmployeesPage({
 
   return (
     <div className="p-8">
+      <Toast />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold text-ink">Employees</h1>
@@ -88,7 +92,7 @@ export default async function EmployeesPage({
         />
       </form>
 
-      <div className="bg-white border border-line rounded-xl overflow-hidden">
+      <div className="bg-white border border-line rounded-xl overflow-hidden shadow-card">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-line text-left text-ink/50">
@@ -104,24 +108,25 @@ export default async function EmployeesPage({
           <tbody>
             {employees && employees.length > 0 ? (
               employees.map((e: any) => (
-                <tr key={e.id} className="border-b border-line last:border-0">
+                <tr key={e.id} className="border-b border-line last:border-0 hover:bg-paper/60 transition-colors">
                   <td className="px-5 py-3 font-mono text-ink/70">{e.employee_code}</td>
                   <td className="px-5 py-3 text-ink">
-                    {e.first_name} {e.last_name ?? ""}
+                    <div className="flex items-center gap-2.5">
+                      <Avatar name={`${e.first_name} ${e.last_name ?? ""}`} />
+                      <span>
+                        {e.first_name} {e.last_name ?? ""}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-5 py-3 text-ink/70">{e.departments?.department_name ?? "—"}</td>
                   <td className="px-5 py-3 text-ink/70">{e.designations?.designation_name ?? "—"}</td>
                   <td className="px-5 py-3 font-mono text-ink/70">{e.pan ?? "—"}</td>
                   <td className="px-5 py-3">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-accentSoft text-accent">
-                      {STATUS_LABEL[e.status] ?? e.status}
-                    </span>
+                    <StatusBadge status={e.status} label={STATUS_LABEL[e.status] ?? e.status} />
                   </td>
                   <td className="px-5 py-3">
                     {essActiveEmployees.has(e.id) ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-accentSoft text-accent">
-                        Active
-                      </span>
+                      <StatusBadge status="active" label="Active" />
                     ) : inviteByEmployee.has(e.id) ? (
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs text-ink/70">

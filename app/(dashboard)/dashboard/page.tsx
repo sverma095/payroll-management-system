@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import Link from "next/link";
 import { Users, IndianRupee, Clock, AlertTriangle, FileText, ArrowRight } from "lucide-react";
+import { TrendChart } from "@/components/trend-chart";
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -29,6 +30,40 @@ export default async function DashboardPage() {
     : { data: [] };
   const currentMonthCost = (netTotal ?? []).reduce((s, r: any) => s + Number(r.net_salary ?? 0), 0);
 
+  // Last 6 calendar months (oldest -> newest, ending this month), each
+  // mapped to its net payroll cost if that month was ever run.
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    return { year: d.getFullYear(), month: d.getMonth() + 1, label: d.toLocaleString("en-IN", { month: "short" }) };
+  });
+
+  const { data: recentHeaders } = companyId
+    ? await supabase
+        .from("payroll_headers")
+        .select("id, year, month")
+        .eq("company_id", companyId)
+        .or(months.map((m) => `and(year.eq.${m.year},month.eq.${m.month})`).join(","))
+    : { data: [] };
+
+  const headerIds = (recentHeaders ?? []).map((h: any) => h.id);
+  const { data: recentDetails } = headerIds.length
+    ? await supabase.from("payroll_details").select("payroll_header_id, net_salary").in("payroll_header_id", headerIds)
+    : { data: [] };
+
+  const costByHeader = new Map<string, number>();
+  (recentDetails ?? []).forEach((r: any) => {
+    costByHeader.set(r.payroll_header_id, (costByHeader.get(r.payroll_header_id) ?? 0) + Number(r.net_salary ?? 0));
+  });
+  const costByMonth = new Map<string, number>();
+  (recentHeaders ?? []).forEach((h: any) => {
+    costByMonth.set(`${h.year}-${h.month}`, costByHeader.get(h.id) ?? 0);
+  });
+
+  const trendPoints = months.map((m) => ({
+    label: m.label,
+    value: costByMonth.get(`${m.year}-${m.month}`) ?? 0
+  }));
+
   const cards = [
     { label: "Active employees", value: activeEmployees ?? 0, icon: Users, href: "/employees" },
     { label: "This month's net payroll", value: `₹${currentMonthCost.toLocaleString("en-IN")}`, icon: IndianRupee, href: "/payroll" },
@@ -45,7 +80,7 @@ export default async function DashboardPage() {
         {cards.map((c) => {
           const Icon = c.icon;
           return (
-            <Link key={c.label} href={c.href} className="bg-white border border-line rounded-xl p-4 hover:border-accent/40 transition-colors group">
+            <Link key={c.label} href={c.href} className="bg-white border border-line rounded-xl p-4 hover:border-accent/40 hover:shadow-lifted transition-all group shadow-card">
               <div className="flex items-center justify-between mb-2">
                 <Icon size={16} className="text-accent" />
                 <ArrowRight size={14} className="text-ink/0 group-hover:text-ink/40 transition-colors" />
@@ -57,22 +92,30 @@ export default async function DashboardPage() {
         })}
       </div>
 
+      {companyId && (
+        <div className="bg-white border border-line rounded-xl p-5 mb-8 shadow-card">
+          <p className="text-sm text-ink mb-1">Payroll cost trend</p>
+          <p className="text-xs text-ink/50 mb-4">Net payroll, last 6 months</p>
+          <TrendChart points={trendPoints} />
+        </div>
+      )}
+
       <div className="grid grid-cols-3 gap-4">
-        <Link href="/leave" className="bg-white border border-line rounded-xl p-4 flex items-center justify-between hover:border-accent/40 transition-colors">
+        <Link href="/leave" className="bg-white border border-line rounded-xl p-4 flex items-center justify-between hover:border-accent/40 hover:shadow-lifted transition-all shadow-card">
           <div>
             <p className="text-sm text-ink">Pending leave</p>
             <p className="text-xs text-ink/50">{pendingLeave ?? 0} request(s) awaiting decision</p>
           </div>
           <ArrowRight size={16} className="text-ink/30" />
         </Link>
-        <Link href="/reimbursements" className="bg-white border border-line rounded-xl p-4 flex items-center justify-between hover:border-accent/40 transition-colors">
+        <Link href="/reimbursements" className="bg-white border border-line rounded-xl p-4 flex items-center justify-between hover:border-accent/40 hover:shadow-lifted transition-all shadow-card">
           <div>
             <p className="text-sm text-ink">Pending claims</p>
             <p className="text-xs text-ink/50">{pendingClaims ?? 0} reimbursement claim(s)</p>
           </div>
           <ArrowRight size={16} className="text-ink/30" />
         </Link>
-        <Link href="/helpdesk" className="bg-white border border-line rounded-xl p-4 flex items-center justify-between hover:border-accent/40 transition-colors">
+        <Link href="/helpdesk" className="bg-white border border-line rounded-xl p-4 flex items-center justify-between hover:border-accent/40 hover:shadow-lifted transition-all shadow-card">
           <div>
             <p className="text-sm text-ink">Open tickets</p>
             <p className="text-xs text-ink/50">{pendingTickets ?? 0} helpdesk ticket(s)</p>
