@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { NAV_GROUPS } from "@/lib/nav-data";
 import { Menu, X } from "lucide-react";
+import { CommandPalette } from "@/components/command-palette";
 
 export function Sidebar({ footer }: { footer: React.ReactNode }) {
   const pathname = usePathname();
@@ -38,6 +39,8 @@ export function Sidebar({ footer }: { footer: React.ReactNode }) {
 
   return (
     <>
+      <CommandPalette />
+
       <button onClick={() => setOpen(true)} className="md:hidden fixed top-3 left-3 z-40 bg-white border border-line rounded-lg p-2">
         <Menu size={18} />
       </button>

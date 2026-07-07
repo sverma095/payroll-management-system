@@ -26,6 +26,7 @@ export default async function ReimbursementsPage({ searchParams }: { searchParam
       {searchParams?.error && <Alert>{searchParams.error}</Alert>}
 
       <div className="bg-white border border-line rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-line text-left text-ink/50">
@@ -76,6 +77,7 @@ export default async function ReimbursementsPage({ searchParams }: { searchParam
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

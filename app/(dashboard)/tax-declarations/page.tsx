@@ -15,6 +15,7 @@ export default async function TaxDeclarationsAdminPage() {
       <h1 className="text-xl font-semibold text-ink mb-1">Tax Declarations</h1>
       <p className="text-sm text-ink/50 mb-6">Regime choice + declared deductions feed the TDS estimate when no custom TDS formula component exists.</p>
       <div className="bg-white border border-line rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-line text-left text-ink/50">
@@ -36,6 +37,7 @@ export default async function TaxDeclarationsAdminPage() {
             </tr>
           )) : <tr><td colSpan={5} className="px-0 py-2"><EmptyState message="No declarations yet." /></td></tr>}
         </tbody></table>
+        </div>
       </div>
     </div>
   );

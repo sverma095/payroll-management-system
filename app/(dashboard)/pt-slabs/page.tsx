@@ -15,6 +15,7 @@ export default async function PtSlabsPage() {
       <p className="text-sm text-ink/50 mb-6">Enter your state's official slabs — reference for setting up the PT formula in Salary Structure (not auto-applied).</p>
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line text-left text-ink/50">
@@ -36,6 +37,7 @@ export default async function PtSlabsPage() {
               </tr>
             )) : <tr><td colSpan={4} className="px-0 py-2"><EmptyState message="No slabs added yet." /></td></tr>}
           </tbody></table>
+          </div>
         </div>
         <section className="bg-white border border-line rounded-xl p-5">
           <form action={addPtSlab} className="space-y-3">

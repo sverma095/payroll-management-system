@@ -25,6 +25,7 @@ export default async function SalaryHistoryPage() {
       <h1 className="text-xl font-semibold text-ink mb-1">Salary Revision History</h1>
       <p className="text-sm text-ink/50 mb-6">Every CTC change, including superseded ones.</p>
       <div className="bg-white border border-line rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead><tr className="border-b border-line text-left text-ink/50">
             <th className="px-4 py-2.5 font-medium">Employee</th>
@@ -43,6 +44,7 @@ export default async function SalaryHistoryPage() {
             )) : <tr><td colSpan={4} className="px-0 py-2"><EmptyState message="No salary history yet." /></td></tr>}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

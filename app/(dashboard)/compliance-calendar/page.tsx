@@ -15,6 +15,7 @@ export default function ComplianceCalendarPage() {
       <h1 className="text-xl font-semibold text-ink mb-1">Compliance Calendar</h1>
       <p className="text-sm text-ink/50 mb-6">Standard statutory due dates — verify against current notifications for your state/year.</p>
       <div className="bg-white border border-line rounded-xl overflow-hidden max-w-lg">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm"><tbody>
           {DUE_DATES.map((d, i) => (
             <tr key={i} className="border-b border-line last:border-0">
@@ -23,6 +24,7 @@ export default function ComplianceCalendarPage() {
             </tr>
           ))}
         </tbody></table>
+        </div>
       </div>
     </div>
   );

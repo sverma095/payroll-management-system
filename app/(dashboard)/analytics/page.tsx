@@ -44,6 +44,7 @@ export default async function AnalyticsPage() {
         <div className="bg-white border border-line rounded-xl p-4"><p className="text-xs text-ink/50">Payroll runs tracked</p><p className="text-lg font-semibold text-ink">{headers?.length ?? 0}</p></div>
       </div>
       <div className="bg-white border border-line rounded-xl overflow-hidden max-w-md">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead><tr className="border-b border-line text-left text-ink/50"><th className="px-4 py-2.5 font-medium">Period</th><th className="px-4 py-2.5 font-medium text-right">Gross cost</th></tr></thead>
           <tbody>
@@ -55,6 +56,7 @@ export default async function AnalyticsPage() {
             )) : <tr><td colSpan={2} className="px-0 py-2"><EmptyState message="No payroll history yet." /></td></tr>}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

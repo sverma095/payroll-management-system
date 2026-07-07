@@ -55,6 +55,7 @@ export default async function StructureDetailPage({
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-5">
           <section className="bg-white border border-line rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-line text-left text-ink/50">
@@ -79,6 +80,7 @@ export default async function StructureDetailPage({
                 )}
               </tbody>
             </table>
+            </div>
           </section>
 
           <section className="bg-white border border-line rounded-xl p-5">

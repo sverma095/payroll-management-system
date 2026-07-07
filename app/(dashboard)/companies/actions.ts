@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { resolveCompanyId } from "@/lib/current-company";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { PAN_REGEX, TAN_REGEX, GSTIN_REGEX } from "@/lib/validators/india";
@@ -98,4 +99,57 @@ export async function createCompany(formData: FormData) {
   });
 
   redirect("/companies");
+}
+
+export async function updateCompany(formData: FormData) {
+  const companyId = String(formData.get("company_id") ?? "");
+  const raw = {
+    company_name: String(formData.get("company_name") ?? ""),
+    legal_name: String(formData.get("legal_name") ?? ""),
+    pan: String(formData.get("pan") ?? "").toUpperCase(),
+    tan: String(formData.get("tan") ?? "").toUpperCase(),
+    gstin: String(formData.get("gstin") ?? "").toUpperCase(),
+    cin: String(formData.get("cin") ?? "").toUpperCase(),
+    pf_number: String(formData.get("pf_number") ?? ""),
+    esi_number: String(formData.get("esi_number") ?? "")
+  };
+
+  const parsed = companySchema.safeParse(raw);
+  if (!parsed.success) {
+    const message = parsed.error.errors[0]?.message ?? "Invalid input";
+    redirect(`/settings?error=${encodeURIComponent(message)}`);
+  }
+
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { tenantId } = await resolveCompanyId(supabase);
+
+  const { error } = await supabase
+    .from("companies")
+    .update({
+      company_name: raw.company_name,
+      legal_name: raw.legal_name,
+      pan: raw.pan,
+      tan: raw.tan || null,
+      gstin: raw.gstin || null,
+      cin: raw.cin || null,
+      pf_number: raw.pf_number || null,
+      esi_number: raw.esi_number || null
+    })
+    .eq("id", companyId);
+
+  if (error) {
+    redirect(`/settings?error=${encodeURIComponent(error.message)}`);
+  }
+
+  await supabase.from("audit_logs").insert({
+    user_id: user?.id,
+    tenant_id: tenantId,
+    module_name: "company_management",
+    action: "update_company",
+    old_value_json: null,
+    new_value_json: raw
+  });
+
+  redirect("/settings?toast=Company+details+updated");
 }

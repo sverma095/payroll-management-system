@@ -35,6 +35,7 @@ export default async function SalaryStructurePage() {
       </div>
 
       <div className="bg-white border border-line rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-line text-left text-ink/50">
@@ -67,6 +68,7 @@ export default async function SalaryStructurePage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

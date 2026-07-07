@@ -18,6 +18,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: { 
       {searchParams?.error && <Alert>{searchParams.error}</Alert>}
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm"><tbody>
             {docs && docs.length > 0 ? docs.map((d: any) => (
               <tr key={d.id} className="border-b border-line last:border-0">
@@ -34,6 +35,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: { 
               </tr>
             )) : <tr><td className="px-0 py-2"><EmptyState message="No documents yet." /></td></tr>}
           </tbody></table>
+          </div>
         </div>
         <section className="bg-white border border-line rounded-xl p-5">
           <h2 className="text-sm font-semibold text-ink mb-3">Add document</h2>

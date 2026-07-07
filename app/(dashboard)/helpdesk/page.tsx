@@ -17,6 +17,7 @@ export default async function HelpdeskPage({ searchParams }: { searchParams: { e
       <p className="text-sm text-ink/50 mb-6">Tickets raised by employees from their portal.</p>
       {searchParams?.error && <Alert>{searchParams.error}</Alert>}
       <div className="bg-white border border-line rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm"><tbody>
           {tickets && tickets.length > 0 ? tickets.map((t: any) => (
             <tr key={t.id} className="border-b border-line last:border-0">
@@ -29,6 +30,7 @@ export default async function HelpdeskPage({ searchParams }: { searchParams: { e
             </tr>
           )) : <tr><td className="px-0 py-2"><EmptyState message="No tickets yet." /></td></tr>}
         </tbody></table>
+        </div>
       </div>
     </div>
   );

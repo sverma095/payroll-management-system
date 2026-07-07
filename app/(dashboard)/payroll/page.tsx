@@ -127,6 +127,7 @@ export default async function PayrollPage({
           </div>
 
           <div className="bg-white border border-line rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-line text-left text-ink/50">
@@ -179,6 +180,7 @@ export default async function PayrollPage({
                 </tfoot>
               )}
             </table>
+            </div>
           </div>
           <p className="text-xs text-ink/40 mt-2">* TDS estimated using new-regime slabs — define a TDS component formula to override.</p>
         </>

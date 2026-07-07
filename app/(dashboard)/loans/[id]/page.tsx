@@ -14,6 +14,7 @@ export default async function LoanDetailPage({ params }: { params: { id: string 
       <h1 className="text-xl font-semibold text-ink mb-1">Amortization Schedule</h1>
       <p className="text-sm text-ink/50 mb-6">{(loan as any).employees?.employee_code} — Outstanding: ₹{Number(loan.outstanding_balance).toLocaleString("en-IN")}</p>
       <div className="bg-white border border-line rounded-xl overflow-hidden max-h-[500px] overflow-y-auto">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm"><thead className="sticky top-0 bg-white"><tr className="border-b border-line text-left text-ink/50">
           <th className="px-3 py-2 font-medium">#</th><th className="px-3 py-2 font-medium text-right">Interest</th><th className="px-3 py-2 font-medium text-right">Principal</th><th className="px-3 py-2 font-medium text-right">Balance</th>
         </tr></thead><tbody>
@@ -26,6 +27,7 @@ export default async function LoanDetailPage({ params }: { params: { id: string 
             </tr>
           ))}
         </tbody></table>
+        </div>
       </div>
     </div>
   );

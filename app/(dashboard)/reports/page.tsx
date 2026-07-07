@@ -139,6 +139,7 @@ export default async function ReportsPage({
 
       {report === "audit" ? (
         <div className="bg-white border border-line rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line text-left text-ink/50">
@@ -163,12 +164,14 @@ export default async function ReportsPage({
               )}
             </tbody>
           </table>
+          </div>
         </div>
       ) : (
         <div className="bg-white border border-line rounded-xl overflow-hidden">
           {table?.note && (
             <p className="px-4 py-2 text-xs text-warn bg-warn/5 border-b border-line">{table.note}</p>
           )}
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line text-left text-ink/50">
@@ -195,6 +198,7 @@ export default async function ReportsPage({
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

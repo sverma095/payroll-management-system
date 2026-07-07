@@ -24,6 +24,7 @@ export default async function BonusPage({ searchParams }: { searchParams: { erro
       {searchParams?.error && <Alert>{searchParams.error}</Alert>}
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="border-b border-line text-left text-ink/50">
               <th className="px-4 py-2.5 font-medium">Employee</th>
@@ -42,6 +43,7 @@ export default async function BonusPage({ searchParams }: { searchParams: { erro
               )) : <tr><td colSpan={4} className="px-0 py-2"><EmptyState message="No bonus entries yet." /></td></tr>}
             </tbody>
           </table>
+          </div>
         </div>
         <section className="bg-white border border-line rounded-xl p-5">
           <h2 className="text-sm font-semibold text-ink mb-3">Add bonus</h2>

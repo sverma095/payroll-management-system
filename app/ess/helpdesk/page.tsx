@@ -12,6 +12,7 @@ export default async function MyHelpdeskPage() {
       <p className="text-sm text-ink/50 mb-6">Raise a query for HR.</p>
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 bg-white border border-line rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm"><tbody>
             {tickets && tickets.length > 0 ? tickets.map((t: any) => (
               <tr key={t.id} className="border-b border-line last:border-0">
@@ -20,6 +21,7 @@ export default async function MyHelpdeskPage() {
               </tr>
             )) : <tr><td className="px-0 py-2"><EmptyState message="No tickets yet." /></td></tr>}
           </tbody></table>
+          </div>
         </div>
         <section className="bg-white border border-line rounded-xl p-5">
           <form action={raiseTicket} className="space-y-3">
