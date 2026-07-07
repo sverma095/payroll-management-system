@@ -5,6 +5,7 @@ import { resolveCompanyId } from "@/lib/current-company";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getActiveWorkflow, startApprovalChain, decideCurrentStep } from "@/lib/workflow";
+import { notifyUser } from "@/lib/notify";
 
 export async function createLeaveType(formData: FormData) {
   const supabase = createClient();
@@ -91,7 +92,7 @@ export async function decideLeave(formData: FormData) {
     if (app) {
       const { data: appUser } = await supabase.from("app_users").select("id").eq("employee_id", app.employee_id).maybeSingle();
       if (appUser) {
-        await supabase.from("notifications").insert({ user_id: appUser.id, title: `Leave ${newStatus}`, body: `Your leave request was ${newStatus}.` });
+        await notifyUser(supabase, appUser.id, `Leave ${newStatus}`, `Your leave request was ${newStatus}.`);
       }
     }
   }

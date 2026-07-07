@@ -3,8 +3,9 @@ import { resolveCompanyId } from "@/lib/current-company";
 import { decideReimbursement } from "./actions";
 import { EmptyState } from "@/components/empty-state";
 import { StatusBadge } from "@/components/status-badge";
+import { Alert } from "@/components/alert";
 
-export default async function ReimbursementsPage() {
+export default async function ReimbursementsPage({ searchParams }: { searchParams: { error?: string } }) {
   const supabase = createClient();
   const { companyId } = await resolveCompanyId(supabase);
 
@@ -22,6 +23,7 @@ export default async function ReimbursementsPage() {
       <p className="text-sm text-ink/50 mb-6">
         Employees submit claims from their own portal. Approved-but-unpaid claims are paid out the next time payroll runs.
       </p>
+      {searchParams?.error && <Alert>{searchParams.error}</Alert>}
 
       <div className="bg-white border border-line rounded-xl overflow-hidden">
         <table className="w-full text-sm">

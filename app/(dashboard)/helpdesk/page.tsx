@@ -3,8 +3,9 @@ import { resolveCompanyId } from "@/lib/current-company";
 import { resolveTicket } from "./actions";
 import { EmptyState } from "@/components/empty-state";
 import { StatusBadge } from "@/components/status-badge";
+import { Alert } from "@/components/alert";
 
-export default async function HelpdeskPage() {
+export default async function HelpdeskPage({ searchParams }: { searchParams: { error?: string } }) {
   const supabase = createClient();
   const { companyId } = await resolveCompanyId(supabase);
   const { data: tickets } = companyId
@@ -14,6 +15,7 @@ export default async function HelpdeskPage() {
     <div className="p-8">
       <h1 className="text-xl font-semibold text-ink mb-1">HR Helpdesk</h1>
       <p className="text-sm text-ink/50 mb-6">Tickets raised by employees from their portal.</p>
+      {searchParams?.error && <Alert>{searchParams.error}</Alert>}
       <div className="bg-white border border-line rounded-xl overflow-hidden">
         <table className="w-full text-sm"><tbody>
           {tickets && tickets.length > 0 ? tickets.map((t: any) => (
