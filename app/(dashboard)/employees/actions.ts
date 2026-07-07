@@ -42,7 +42,8 @@ const employeeSchema = z.object({
     .refine((v) => v === "" || IFSC_REGEX.test(v), "IFSC must look like ABCD0123456")
     .optional()
     .or(z.literal("")),
-  beneficiary_name: z.string().optional().or(z.literal(""))
+  beneficiary_name: z.string().optional().or(z.literal("")),
+  manager_id: z.string().optional().or(z.literal(""))
 });
 
 export async function createEmployee(formData: FormData) {
@@ -126,6 +127,71 @@ export async function createEmployee(formData: FormData) {
   });
 
   redirect("/employees");
+}
+
+const STATUS_OPTIONS = ["draft", "active", "probation", "confirmed", "notice_period", "relieved", "ff_completed", "archived"];
+
+export async function updateEmployee(formData: FormData) {
+  const employeeId = String(formData.get("employee_id") ?? "");
+  const raw = Object.fromEntries(
+    Array.from(formData.entries()).map(([k, v]) => [k, String(v)])
+  );
+  raw.pan = (raw.pan ?? "").toUpperCase();
+
+  const parsed = employeeSchema.omit({ employee_code: true, ifsc: true, bank_name: true, account_number: true, beneficiary_name: true }).safeParse(raw);
+  if (!parsed.success) {
+    const message = parsed.error.errors[0]?.message ?? "Invalid input";
+    redirect(`/employees/${employeeId}/edit?error=${encodeURIComponent(message)}`);
+  }
+  const data = parsed.data!;
+
+  if (data.manager_id === employeeId) {
+    redirect(`/employees/${employeeId}/edit?error=${encodeURIComponent("An employee can't be their own manager")}`);
+  }
+
+  const status = String(formData.get("status") ?? "draft");
+  if (!STATUS_OPTIONS.includes(status)) {
+    redirect(`/employees/${employeeId}/edit?error=${encodeURIComponent("Invalid status")}`);
+  }
+
+  const supabase = createClient();
+  const { tenantId } = await resolveCompanyId(supabase);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { error } = await supabase
+    .from("employees")
+    .update({
+      first_name: data.first_name,
+      last_name: data.last_name || null,
+      dob: data.dob || null,
+      doj: data.doj,
+      gender: data.gender || null,
+      pan: data.pan || null,
+      aadhaar: data.aadhaar || null,
+      uan: data.uan || null,
+      esic_number: data.esic_number || null,
+      department_id: data.department_id || null,
+      designation_id: data.designation_id || null,
+      branch_id: data.branch_id || null,
+      manager_id: data.manager_id || null,
+      status
+    })
+    .eq("id", employeeId);
+
+  if (error) {
+    redirect(`/employees/${employeeId}/edit?error=${encodeURIComponent(error.message)}`);
+  }
+
+  await supabase.from("audit_logs").insert({
+    user_id: user?.id,
+    tenant_id: tenantId,
+    module_name: "employee_management",
+    action: "update_employee",
+    old_value_json: null,
+    new_value_json: { employeeId, ...data, status }
+  });
+
+  redirect("/employees?toast=Employee+updated");
 }
 
 export async function generateInvite(formData: FormData) {

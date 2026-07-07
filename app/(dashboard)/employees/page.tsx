@@ -104,6 +104,7 @@ export default async function EmployeesPage({
               <th className="px-5 py-3 font-medium font-mono">PAN</th>
               <th className="px-5 py-3 font-medium">Status</th>
               <th className="px-5 py-3 font-medium">ESS access</th>
+              <th className="px-5 py-3 font-medium"></th>
             </tr>
           </thead>
           <tbody>
@@ -155,11 +156,16 @@ export default async function EmployeesPage({
                       </form>
                     )}
                   </td>
+                  <td className="px-5 py-3">
+                    <Link href={`/employees/${e.id}/edit`} className="text-xs text-ink/40 hover:text-accent">
+                      Edit
+                    </Link>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="px-5 py-2">
+                <td colSpan={8} className="px-5 py-2">
                   <EmptyState message={q ? "No employees match that search." : "No employees yet. Add your first employee to get started."} icon={UserPlus} />
                 </td>
               </tr>
