@@ -3,7 +3,7 @@ import {
   Wallet, Calculator, CalendarCheck, CalendarDays, PlayCircle, Receipt,
   HandCoins, ReceiptText, TrendingUp, Star, LogOut, Gift, ShieldCheck,
   HeartPulse, CreditCard, BarChart3, FolderOpen, LifeBuoy, Workflow,
-  CalendarRange, FileSliders, Percent, FileBarChart, Settings
+  CalendarRange, FileSliders, Percent, FileBarChart, Settings, Briefcase
 } from "lucide-react";
 
 export interface NavItem {
@@ -28,6 +28,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/organization", label: "Org setup", icon: Network },
       { href: "/employees", label: "Employees", icon: Users },
       { href: "/org-chart", label: "Org chart", icon: GitBranch },
+      { href: "/recruitment", label: "Recruitment", icon: Briefcase },
       { href: "/salary-history", label: "Salary history", icon: History }
     ]
   },

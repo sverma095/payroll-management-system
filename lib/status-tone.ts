@@ -19,7 +19,23 @@ const TONE_BY_STATUS: Record<string, StatusTone> = {
   locked: "neutral",
   rejected: "critical",
   cancelled: "neutral",
-  closed: "neutral"
+  closed: "neutral",
+  // recruitment: job postings
+  on_hold: "caution",
+  // recruitment: candidate stages
+  applied: "neutral",
+  screening: "caution",
+  interview: "caution",
+  offer: "caution",
+  hired: "positive",
+  // recruitment: interviews
+  scheduled: "caution",
+  completed: "positive",
+  // recruitment: offers
+  sent: "caution",
+  accepted: "positive",
+  declined: "critical",
+  withdrawn: "neutral"
 };
 
 export function statusTone(status: string | null | undefined): StatusTone {
