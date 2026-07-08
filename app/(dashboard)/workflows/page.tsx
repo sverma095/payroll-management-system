@@ -12,7 +12,7 @@ export default async function WorkflowsPage() {
   return (
     <div className="p-8">
       <h1 className="text-xl font-semibold text-ink mb-1">Workflows</h1>
-      <p className="text-sm text-ink/50 mb-6">Define multi-step approval chains. Enforced for Leave; Reimbursement, Variable Pay and other modules still resolve in a single step regardless of what's defined here.</p>
+      <p className="text-sm text-ink/50 mb-6">Define multi-step approval chains. Enforced for Leave, Reimbursement, and Variable Pay - other modules still resolve in a single step regardless of what's defined here.</p>
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 space-y-4">
           {(workflows ?? []).map((w: any) => (
@@ -35,7 +35,7 @@ export default async function WorkflowsPage() {
           <h2 className="text-sm font-semibold text-ink mb-3">New workflow</h2>
           <form action={createWorkflow} className="space-y-3">
             <input name="workflow_name" required placeholder="Name" className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs" />
-            <input name="module_name" required placeholder="Module (leave, reimbursement...)" className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs" />
+            <input name="module_name" required placeholder="Module: leave, reimbursement, or variable_pay" className="w-full rounded-lg border border-line px-2.5 py-1.5 text-xs" />
             <button type="submit" className="w-full rounded-lg bg-accent text-white text-xs font-medium py-1.5 hover:bg-accent/90">Create</button>
           </form>
         </section>

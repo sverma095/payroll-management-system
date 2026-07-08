@@ -21,6 +21,23 @@ export default async function VariablePayPage({ searchParams }: { searchParams: 
       : Promise.resolve({ data: [] as any[] })
   ]);
 
+  const rowIds = (rows ?? []).map((r: any) => r.id);
+  const { data: approvalRows } = rowIds.length
+    ? await supabase
+        .from("workflow_approvals")
+        .select("entity_id, step_no, approver_role, approved")
+        .eq("entity_type", "variable_pay")
+        .in("entity_id", rowIds)
+        .order("step_no")
+    : { data: [] as any[] };
+
+  const stepsByRow = new Map<string, any[]>();
+  (approvalRows ?? []).forEach((r: any) => {
+    const list = stepsByRow.get(r.entity_id) ?? [];
+    list.push(r);
+    stepsByRow.set(r.entity_id, list);
+  });
+
   return (
     <div className="p-8">
       <h1 className="text-xl font-semibold text-ink mb-1">Variable Pay</h1>
@@ -52,10 +69,24 @@ export default async function VariablePayPage({ searchParams }: { searchParams: 
                     </td>
                     <td className="px-4 py-2.5 text-ink/70 capitalize">{r.variable_type}</td>
                     <td className="px-4 py-2.5 text-right font-mono">{Number(r.allocated_amount).toLocaleString("en-IN")}</td>
-                    <td className="px-4 py-2.5 text-right font-mono">{Number(r.approved_amount).toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-2.5 text-right font-mono">
+                      {Number(r.approved_amount).toLocaleString("en-IN")}
+                      {(() => {
+                        const steps = stepsByRow.get(r.id);
+                        if (!steps || steps.length === 0) return null;
+                        const current = steps.find((s) => !s.approved);
+                        return (
+                          <p className="text-[11px] text-ink/40 mt-1 text-right font-sans">
+                            {current
+                              ? `Step ${current.step_no}/${steps.length}: ${current.approver_role}`
+                              : `All ${steps.length} step(s) signed off`}
+                          </p>
+                        );
+                      })()}
+                    </td>
                     <td className="px-4 py-2.5 text-right font-mono text-ink/50">{Number(r.payout_amount).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-2.5">
-                      {Number(r.approved_amount) === 0 && (
+                      {Number(r.approved_amount) === 0 && (stepsByRow.get(r.id)?.some((s) => !s.approved) ?? true) && (
                         <form action={approveVariablePay} className="flex items-center gap-1">
                           <input type="hidden" name="id" value={r.id} />
                           <input type="number" name="approved_amount" defaultValue={r.allocated_amount} className="w-20 rounded border border-line px-1.5 py-0.5 text-xs" />

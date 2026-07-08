@@ -17,6 +17,23 @@ export default async function ReimbursementsPage({ searchParams }: { searchParam
         .order("created_at", { ascending: false })
     : { data: [] };
 
+  const claimIds = (claims ?? []).map((c: any) => c.id);
+  const { data: approvalRows } = claimIds.length
+    ? await supabase
+        .from("workflow_approvals")
+        .select("entity_id, step_no, approver_role, approved")
+        .eq("entity_type", "reimbursement")
+        .in("entity_id", claimIds)
+        .order("step_no")
+    : { data: [] as any[] };
+
+  const stepsByClaim = new Map<string, any[]>();
+  (approvalRows ?? []).forEach((r: any) => {
+    const list = stepsByClaim.get(r.entity_id) ?? [];
+    list.push(r);
+    stepsByClaim.set(r.entity_id, list);
+  });
+
   return (
     <div className="p-8">
       <h1 className="text-xl font-semibold text-ink mb-1">Reimbursements</h1>
@@ -50,6 +67,18 @@ export default async function ReimbursementsPage({ searchParams }: { searchParam
                   <td className="px-4 py-2.5 text-right font-mono">{Number(c.approved_amount ?? 0).toLocaleString("en-IN")}</td>
                   <td className="px-4 py-2.5">
                     <StatusBadge status={c.status} />
+                    {(() => {
+                      const steps = stepsByClaim.get(c.id);
+                      if (!steps || steps.length === 0) return null;
+                      const current = steps.find((s) => !s.approved);
+                      return (
+                        <p className="text-[11px] text-ink/40 mt-1">
+                          {current
+                            ? `Step ${current.step_no}/${steps.length}: ${current.approver_role}`
+                            : `All ${steps.length} step(s) signed off`}
+                        </p>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-2.5">
                     {c.status === "pending" && (
