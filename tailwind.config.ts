@@ -18,7 +18,13 @@ const config: Config = {
         neutral: { soft: "#EEEDE9", text: "#6B6A63" },
         positive: { soft: "#E7EFEC", text: "#2F5D50" },
         caution: { soft: "#FBEEDF", text: "#B3541E" },
-        critical: { soft: "#F6E5E1", text: "#9A3B23" }
+        critical: { soft: "#F6E5E1", text: "#9A3B23" },
+        // Pastel icon-tile colors for quick-action cards - varied, not all
+        // the same accent green, matching a livelier dashboard reference.
+        tileBlue: { soft: "#E4EEFB", text: "#3465A4" },
+        tileAmber: { soft: "#FCEFD9", text: "#B3821E" },
+        tileViolet: { soft: "#EFE6F6", text: "#6B3FA0" },
+        tileRose: { soft: "#FBE7EA", text: "#B34160" }
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
