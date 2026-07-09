@@ -1,3 +1,4 @@
+import { resolvePeriod } from "@/lib/payroll-month";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { fetchReportData } from "@/lib/reports/fetch-data";
@@ -53,11 +54,6 @@ const REPORT_CATEGORIES = [
   }
 ];
 
-function currentPeriod() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
-
 function tabNeedsPeriod(key: string) {
   return key !== "headcount" && key !== "audit";
 }
@@ -67,7 +63,10 @@ export default async function ReportsPage({
 }: {
   searchParams: { period?: string; report?: string };
 }) {
-  const period = searchParams?.period || currentPeriod();
+  const period = searchParams?.period || (() => {
+    const { year, month } = resolvePeriod();
+    return `${year}-${String(month).padStart(2, "0")}`;
+  })();
   const report = searchParams?.report || "register";
   const [year, month] = period.split("-").map(Number);
 

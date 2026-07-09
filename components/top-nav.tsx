@@ -3,20 +3,49 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { NAV_GROUPS } from "@/lib/nav-data";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, Grid3x3, LayoutDashboard, Users, PlayCircle, CalendarDays, FileBarChart, Workflow, ListChecks } from "lucide-react";
 import { CommandPalette } from "@/components/command-palette";
 
-export function TopNav({ footer }: { footer: React.ReactNode }) {
+import { setPayrollMonthCookie } from "@/app/(dashboard)/payroll-month-actions";
+
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const APPS = [
+  { href: "/dashboard", label: "Homepage", icon: LayoutDashboard },
+  { href: "/employees", label: "Employee", icon: Users },
+  { href: "/payroll", label: "Payroll", icon: PlayCircle },
+  { href: "/attendance", label: "Workforce Management", icon: CalendarDays },
+  { href: "/reports", label: "Reports", icon: FileBarChart },
+  { href: "/workflows", label: "Workflow", icon: Workflow },
+  { href: "/helpdesk", label: "Tasks", icon: ListChecks }
+];
+
+export function TopNav({
+  footer,
+  currentYear,
+  currentMonth
+}: {
+  footer: React.ReactNode;
+  currentYear: number;
+  currentMonth: number;
+}) {
   const pathname = usePathname();
   const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [appsOpen, setAppsOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const barRef = useRef<HTMLDivElement>(null);
 
   // Click outside or route change closes whichever dropdown is open.
-  useEffect(() => setOpenGroup(null), [pathname]);
+  useEffect(() => {
+    setOpenGroup(null);
+    setAppsOpen(false);
+  }, [pathname]);
   useEffect(() => {
     function onClick(e: MouseEvent) {
-      if (barRef.current && !barRef.current.contains(e.target as Node)) setOpenGroup(null);
+      if (barRef.current && !barRef.current.contains(e.target as Node)) {
+        setOpenGroup(null);
+        setAppsOpen(false);
+      }
     }
     window.addEventListener("mousedown", onClick);
     return () => window.removeEventListener("mousedown", onClick);
@@ -34,6 +63,35 @@ export function TopNav({ footer }: { footer: React.ReactNode }) {
 
       <div ref={barRef} className="hidden md:flex flex-col border-b border-line bg-white sticky top-0 z-30">
         <div className="flex items-center px-5 h-14 border-b border-line">
+          <div className="relative mr-3">
+            <button
+              onClick={() => setAppsOpen((v) => !v)}
+              className={`flex items-center justify-center h-8 w-8 rounded-lg transition-colors ${appsOpen ? "bg-accentSoft text-accent" : "text-ink/50 hover:bg-paper hover:text-ink"}`}
+              title="Your apps"
+            >
+              <Grid3x3 size={17} />
+            </button>
+            {appsOpen && (
+              <div className="absolute top-full left-0 mt-1 min-w-[220px] bg-white border border-line rounded-xl shadow-lifted py-1.5 z-40">
+                <p className="px-4 py-1.5 text-[10px] font-semibold tracking-wider text-ink/30 uppercase">Your Apps</p>
+                {APPS.map((a) => {
+                  const Icon = a.icon;
+                  return (
+                    <Link
+                      key={a.href}
+                      href={a.href}
+                      onClick={() => setAppsOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-ink/70 hover:bg-accentSoft hover:text-accent transition-colors"
+                    >
+                      <Icon size={15} />
+                      {a.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <Link href="/dashboard" className="flex items-center gap-2 mr-6 shrink-0">
             <span className="h-2 w-2 rounded-full bg-accent" />
             <span className="text-sm font-mono tracking-wider text-ink/60 uppercase">Payroll OS</span>
@@ -82,6 +140,30 @@ export function TopNav({ footer }: { footer: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-3 shrink-0">
+            <form action={setPayrollMonthCookie} className="flex items-center gap-1">
+              <input type="hidden" name="redirect_to" value={pathname} />
+              <select
+                name="month"
+                defaultValue={currentMonth}
+                onChange={(e) => e.target.form!.requestSubmit()}
+                className="text-xs border border-line rounded-lg px-2 py-1.5 bg-white text-ink/70"
+                title="Payroll month (applies to Payroll, Payslips, and Reports)"
+              >
+                {MONTH_NAMES.map((m, i) => (
+                  <option key={m} value={i + 1}>{m}</option>
+                ))}
+              </select>
+              <select
+                name="year"
+                defaultValue={currentYear}
+                onChange={(e) => e.target.form!.requestSubmit()}
+                className="text-xs border border-line rounded-lg px-2 py-1.5 bg-white text-ink/70"
+              >
+                {[currentYear - 1, currentYear, currentYear + 1].map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </form>
             <div className="text-xs text-ink/40 truncate max-w-[160px]">{footer}</div>
           </div>
         </div>

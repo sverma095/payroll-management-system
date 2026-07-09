@@ -1,3 +1,4 @@
+import { resolvePeriod } from "@/lib/payroll-month";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { processPayroll, approvePayroll, lockPayroll, runPrePayrollCheck } from "./actions";
@@ -22,9 +23,7 @@ export default async function PayrollPage({
     checkWarnings?: string;
   };
 }) {
-  const now = new Date();
-  const year = Number(searchParams?.year ?? now.getFullYear());
-  const month = Number(searchParams?.month ?? now.getMonth() + 1);
+  const { year, month } = resolvePeriod(searchParams?.year, searchParams?.month);
 
   const supabase = createClient();
   const { companyId, tenantId } = await resolveCompanyId(supabase);
