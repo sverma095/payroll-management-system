@@ -1,5 +1,5 @@
 import { NotificationBell } from "@/components/notification-bell";
-import { Sidebar } from "@/components/sidebar";
+import { TopNav } from "@/components/top-nav";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
 import { redirect } from "next/navigation";
@@ -22,8 +22,8 @@ export default async function DashboardLayout({
     : { data: null };
 
   return (
-    <div className="min-h-screen flex" style={{ "--accent-color": company?.theme_color || "#2F5D50" } as React.CSSProperties}>
-      <Sidebar footer={<><NotificationBell />{user?.email}</>} />
+    <div className="min-h-screen flex flex-col" style={{ "--accent-color": company?.theme_color || "#2F5D50" } as React.CSSProperties}>
+      <TopNav footer={<><NotificationBell />{user?.email}</>} />
       <main className="flex-1 bg-paper md:pt-0 pt-14">{children}</main>
     </div>
   );

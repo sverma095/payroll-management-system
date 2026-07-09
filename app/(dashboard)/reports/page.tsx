@@ -15,16 +15,42 @@ import { buildJournalVoucher } from "@/lib/reports/journal-voucher";
 import { EmptyState } from "@/components/empty-state";
 import Link from "next/link";
 
-const REPORT_TABS = [
-  { key: "register", label: "Payroll Register" },
-  { key: "pf", label: "PF" },
-  { key: "esi", label: "ESI" },
-  { key: "pt", label: "PT" },
-  { key: "lwf", label: "LWF" },
-  { key: "tds", label: "TDS" },
-  { key: "jv", label: "Accounting (JV)" },
-  { key: "headcount", label: "Headcount" },
-  { key: "audit", label: "Audit log" }
+const REPORT_CATEGORIES = [
+  {
+    label: "Payroll",
+    color: "bg-tileBlue-text",
+    items: [
+      { key: "register", label: "Payroll Register" },
+      { key: "jv", label: "Accounting (Journal Voucher)" }
+    ]
+  },
+  {
+    label: "PF - Provident Fund",
+    color: "bg-accent",
+    items: [{ key: "pf", label: "PF Summary Report" }]
+  },
+  {
+    label: "ESI - Employees' State Insurance",
+    color: "bg-tileViolet-text",
+    items: [{ key: "esi", label: "ESI Summary Report" }]
+  },
+  {
+    label: "PT & Income Tax",
+    color: "bg-tileAmber-text",
+    items: [
+      { key: "pt", label: "PT Summary Report" },
+      { key: "tds", label: "TDS Summary Report" }
+    ]
+  },
+  {
+    label: "Compliance & Workforce",
+    color: "bg-tileRose-text",
+    items: [
+      { key: "lwf", label: "LWF Summary Report" },
+      { key: "headcount", label: "Headcount Report" },
+      { key: "audit", label: "Audit Log" }
+    ]
+  }
 ];
 
 function currentPeriod() {
@@ -100,17 +126,24 @@ export default async function ReportsPage({
         Built from whatever payroll has already processed for the selected period.
       </p>
 
-      <div className="flex items-center gap-1 mb-4 border-b border-line">
-        {REPORT_TABS.map((tab) => (
-          <Link
-            key={tab.key}
-            href={`/reports?report=${tab.key}${tabNeedsPeriod(tab.key) ? `&period=${period}` : ""}`}
-            className={`px-3 py-2 text-sm -mb-px border-b-2 ${
-              report === tab.key ? "border-accent text-accent font-medium" : "border-transparent text-ink/50 hover:text-ink"
-            }`}
-          >
-            {tab.label}
-          </Link>
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {REPORT_CATEGORIES.map((cat) => (
+          <div key={cat.label} className="border border-line rounded-xl overflow-hidden bg-white shadow-card">
+            <p className={`${cat.color} text-white text-xs font-semibold px-3 py-2`}>{cat.label}</p>
+            <div className="py-1">
+              {cat.items.map((tab) => (
+                <Link
+                  key={tab.key}
+                  href={`/reports?report=${tab.key}${tabNeedsPeriod(tab.key) ? `&period=${period}` : ""}`}
+                  className={`flex items-center justify-between px-3 py-1.5 text-sm transition-colors ${
+                    report === tab.key ? "bg-accentSoft text-accent font-medium" : "text-ink/70 hover:bg-paper"
+                  }`}
+                >
+                  {tab.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
 
