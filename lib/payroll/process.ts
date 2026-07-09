@@ -58,6 +58,58 @@ function validateEmployees(
   return { blocking, warnings };
 }
 
+export interface PayrollReadiness {
+  employeeCount: number;
+  blocking: PayrollIssue[];
+  warnings: PayrollIssue[];
+}
+
+/**
+ * Same employee/bank/assignment fetch + validateEmployees that runPayroll
+ * itself uses, but stops there - no computation, no insert. This is what
+ * backs the "Run Pre-Payroll Check" button: it can never disagree with
+ * what actually blocks a real run, because it's the exact same check.
+ */
+export async function checkPayrollReadiness(
+  supabase: SupabaseClient,
+  companyId: string,
+  year: number,
+  month: number
+): Promise<PayrollReadiness> {
+  const { data: employees } = await supabase
+    .from("employees")
+    .select("id, employee_code, first_name, last_name, pan, uan")
+    .eq("company_id", companyId)
+    .eq("status", "active");
+
+  if (!employees || employees.length === 0) {
+    return { employeeCount: 0, blocking: [{ employeeId: "", employeeCode: "", message: "No active employees" }], warnings: [] };
+  }
+
+  const employeeIds = employees.map((e) => e.id);
+
+  const { data: banks } = await supabase
+    .from("employee_banks")
+    .select("employee_id, account_number, ifsc")
+    .in("employee_id", employeeIds)
+    .eq("is_primary", true);
+  const bankByEmployee = new Map(banks?.map((b) => [b.employee_id, !!(b.account_number && b.ifsc)]) ?? []);
+
+  const periodEnd = new Date(year, month, 0).toISOString().slice(0, 10);
+
+  const { data: assignments } = await supabase
+    .from("employee_salary_assignments")
+    .select("employee_id, salary_structure_id, effective_from, effective_to")
+    .in("employee_id", employeeIds)
+    .lte("effective_from", periodEnd)
+    .or(`effective_to.is.null,effective_to.gte.${periodEnd}`);
+
+  const assignmentByEmployee = new Map(assignments?.map((a) => [a.employee_id, a]) ?? []);
+
+  const { blocking, warnings } = validateEmployees(employees, bankByEmployee, assignmentByEmployee);
+  return { employeeCount: employees.length, blocking, warnings };
+}
+
 export async function runPayroll(
   supabase: SupabaseClient,
   companyId: string,

@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
-import { processPayroll, approvePayroll, lockPayroll } from "./actions";
+import { processPayroll, approvePayroll, lockPayroll, runPrePayrollCheck } from "./actions";
 import { StatusBadge } from "@/components/status-badge";
+import { Alert } from "@/components/alert";
 import Link from "next/link";
 
 const MONTHS = [
@@ -12,14 +13,32 @@ const MONTHS = [
 export default async function PayrollPage({
   searchParams
 }: {
-  searchParams: { year?: string; month?: string; error?: string };
+  searchParams: {
+    year?: string;
+    month?: string;
+    error?: string;
+    checkCount?: string;
+    checkBlocking?: string;
+    checkWarnings?: string;
+  };
 }) {
   const now = new Date();
   const year = Number(searchParams?.year ?? now.getFullYear());
   const month = Number(searchParams?.month ?? now.getMonth() + 1);
 
   const supabase = createClient();
-  const { companyId } = await resolveCompanyId(supabase);
+  const { companyId, tenantId } = await resolveCompanyId(supabase);
+
+  const { data: processLog } = tenantId
+    ? await supabase
+        .from("audit_logs")
+        .select("created_at, new_value_json")
+        .eq("tenant_id", tenantId)
+        .eq("module_name", "payroll_processing")
+        .eq("action", "process_payroll")
+        .order("created_at", { ascending: false })
+        .limit(20)
+    : { data: [] };
 
   const { data: header } = companyId
     ? await supabase.from("payroll_headers").select("*").eq("company_id", companyId).eq("year", year).eq("month", month).maybeSingle()
@@ -78,6 +97,38 @@ export default async function PayrollPage({
         <p className="text-sm text-warn mb-4 max-w-3xl">{searchParams.error}</p>
       )}
 
+      {(() => {
+        if (searchParams?.checkCount === undefined) return null;
+        let blocking: any[] = [];
+        let warnings: any[] = [];
+        try {
+          blocking = JSON.parse(searchParams.checkBlocking ?? "[]");
+          warnings = JSON.parse(searchParams.checkWarnings ?? "[]");
+        } catch {
+          // malformed query param - treat as no issues rather than crash the page
+        }
+        const clean = blocking.length === 0 && warnings.length === 0;
+        return (
+          <div className="mb-6">
+            <Alert type={clean ? "success" : blocking.length > 0 ? "error" : "info"}>
+              {clean
+                ? `Pre-payroll check passed for all ${searchParams.checkCount} active employee(s). Ready to process.`
+                : `Checked ${searchParams.checkCount} active employee(s): ${blocking.length} blocking issue(s), ${warnings.length} warning(s).`}
+            </Alert>
+            {(blocking.length > 0 || warnings.length > 0) && (
+              <div className="bg-white border border-line rounded-xl p-4 text-xs space-y-1">
+                {blocking.map((i: any, idx: number) => (
+                  <p key={`b${idx}`} className="text-critical-text">{i.employeeCode ? `${i.employeeCode}: ` : ""}{i.message}</p>
+                ))}
+                {warnings.map((i: any, idx: number) => (
+                  <p key={`w${idx}`} className="text-caution-text">{i.employeeCode ? `${i.employeeCode}: ` : ""}{i.message}</p>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {!header && (
         <form action={processPayroll} className="bg-white border border-line rounded-xl p-5 mb-6">
           <input type="hidden" name="year" value={year} />
@@ -85,11 +136,24 @@ export default async function PayrollPage({
           <p className="text-sm text-ink/60 mb-3">
             No payroll run yet for {MONTHS[month - 1]} {year}.
           </p>
-          <button type="submit" className="rounded-lg bg-accent text-white text-sm font-medium px-4 py-2 hover:bg-accent/90 transition-colors">
-            Run payroll
-          </button>
+          <div className="flex gap-3">
+            <button type="submit" className="rounded-lg bg-accent text-white text-sm font-medium px-4 py-2 hover:bg-accent/90 transition-colors">
+              Run payroll
+            </button>
+          </div>
         </form>
       )}
+
+      <form action={runPrePayrollCheck} className="mb-6">
+        <input type="hidden" name="year" value={year} />
+        <input type="hidden" name="month" value={month} />
+        <button
+          type="submit"
+          className="rounded-lg border border-caution-text/30 bg-caution-soft text-caution-text text-sm font-medium px-4 py-2 hover:brightness-95 transition-all"
+        >
+          ✦ Run Pre-Payroll Check
+        </button>
+      </form>
 
       {header && (
         <>
@@ -184,6 +248,42 @@ export default async function PayrollPage({
           </div>
           <p className="text-xs text-ink/40 mt-2">* TDS estimated using new-regime slabs — define a TDS component formula to override.</p>
         </>
+      )}
+
+      {processLog && processLog.length > 0 && (
+        <div className="bg-white border border-line rounded-xl overflow-hidden shadow-card mt-8">
+          <p className="text-sm font-semibold text-ink px-4 pt-4 pb-2">Last {processLog.length} process log</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-line text-left text-ink/50">
+                  <th className="px-4 py-2.5 font-medium">Payroll</th>
+                  <th className="px-4 py-2.5 font-medium">Description</th>
+                  <th className="px-4 py-2.5 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {processLog.map((row: any, idx: number) => {
+                  const v = row.new_value_json ?? {};
+                  return (
+                    <tr key={idx} className="border-b border-line last:border-0">
+                      <td className="px-4 py-2.5 text-ink/70">{v.month ? `${MONTHS[v.month - 1]} ${v.year}` : "—"}</td>
+                      <td className="px-4 py-2.5 text-ink">
+                        {v.description ?? `Processed ${v.processedCount ?? "?"} employee(s).`}
+                        <span className="block text-xs text-ink/40">
+                          Processed on {new Date(row.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <StatusBadge status="completed" label="COMPLETED" />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );
