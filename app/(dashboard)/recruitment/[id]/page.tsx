@@ -26,7 +26,7 @@ export default async function JobPostingDetailPage({
 
   const { data: posting } = await supabase
     .from("job_postings")
-    .select("id, title, employment_type, location, description, openings_count, status, departments(department_name), designations(designation_name)")
+    .select("id, title, employment_type, location, description, openings_count, status, department_id, designation_id, departments(department_name), designations(designation_name)")
     .eq("id", params.id)
     .maybeSingle();
 
@@ -187,6 +187,22 @@ export default async function JobPostingDetailPage({
                               <button className="text-warn hover:underline">Declined</button>
                             </form>
                           </div>
+                        )}
+                        {offer.status === "accepted" && (
+                          <Link
+                            href={{
+                              pathname: "/employees/new",
+                              query: {
+                                first_name: c.full_name.split(" ")[0],
+                                last_name: c.full_name.split(" ").slice(1).join(" "),
+                                ...(posting.department_id ? { department_id: posting.department_id } : {}),
+                                ...(posting.designation_id ? { designation_id: posting.designation_id } : {})
+                              }
+                            }}
+                            className="text-accent hover:underline block mt-1"
+                          >
+                            → Convert to employee record
+                          </Link>
                         )}
                       </div>
                     ) : (

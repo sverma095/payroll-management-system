@@ -7,7 +7,7 @@ import { Alert } from "@/components/alert";
 export default async function NewEmployeePage({
   searchParams
 }: {
-  searchParams: { error?: string };
+  searchParams: { error?: string; first_name?: string; last_name?: string; department_id?: string; designation_id?: string };
 }) {
   const supabase = createClient();
   const { companyId } = await resolveCompanyId(supabase);
@@ -44,8 +44,8 @@ export default async function NewEmployeePage({
           <div className="grid grid-cols-2 gap-4">
             <Field label="Employee code" name="employee_code" mono required />
             <Field label="Date of joining" name="doj" type="date" required />
-            <Field label="First name" name="first_name" required />
-            <Field label="Last name" name="last_name" />
+            <Field label="First name" name="first_name" required defaultValue={searchParams?.first_name} />
+            <Field label="Last name" name="last_name" defaultValue={searchParams?.last_name} />
             <Field label="Date of birth" name="dob" type="date" />
             <Select label="Gender" name="gender" options={["Male", "Female", "Other"]} />
           </div>
@@ -57,11 +57,13 @@ export default async function NewEmployeePage({
             <Select
               label="Department"
               name="department_id"
+              defaultValue={searchParams?.department_id}
               options={(departments.data ?? []).map((d: any) => ({ value: d.id, label: d.department_name }))}
             />
             <Select
               label="Designation"
               name="designation_id"
+              defaultValue={searchParams?.designation_id}
               options={(designations.data ?? []).map((d: any) => ({ value: d.id, label: d.designation_name }))}
             />
             <Select
@@ -113,7 +115,8 @@ function Field({
   required,
   mono,
   placeholder,
-  type = "text"
+  type = "text",
+  defaultValue
 }: {
   label: string;
   name: string;
@@ -121,6 +124,7 @@ function Field({
   mono?: boolean;
   placeholder?: string;
   type?: string;
+  defaultValue?: string;
 }) {
   return (
     <div>
@@ -133,6 +137,7 @@ function Field({
         type={type}
         required={required}
         placeholder={placeholder}
+        defaultValue={defaultValue}
         className={`w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent ${
           mono ? "font-mono uppercase" : ""
         }`}
@@ -144,11 +149,13 @@ function Field({
 function Select({
   label,
   name,
-  options
+  options,
+  defaultValue
 }: {
   label: string;
   name: string;
   options: string[] | { value: string; label: string }[];
+  defaultValue?: string;
 }) {
   const normalized = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
   return (
@@ -156,6 +163,7 @@ function Select({
       <label className="block text-xs font-medium text-ink/70 mb-1.5">{label}</label>
       <select
         name={name}
+        defaultValue={defaultValue}
         className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent bg-white"
       >
         <option value="">—</option>
