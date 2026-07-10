@@ -31,6 +31,42 @@ export default async function DashboardPage() {
       : Promise.resolve({ data: null })
   ]);
 
+  const { tenantId } = await resolveCompanyId(supabase);
+  const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  const [{ data: expiringDocs }, { data: recentActivity }] = await Promise.all([
+    companyId
+      ? supabase
+          .from("documents")
+          .select("id, doc_name, expiry_date")
+          .eq("company_id", companyId)
+          .not("expiry_date", "is", null)
+          .lte("expiry_date", in30Days)
+          .order("expiry_date")
+          .limit(5)
+      : Promise.resolve({ data: [] as any[] }),
+    tenantId
+      ? supabase
+          .from("audit_logs")
+          .select("action, module_name, created_at, new_value_json")
+          .eq("tenant_id", tenantId)
+          .order("created_at", { ascending: false })
+          .limit(6)
+      : Promise.resolve({ data: [] as any[] })
+  ]);
+
+  const ACTION_LABELS: Record<string, string> = {
+    create_company: "Company created",
+    update_company: "Company details updated",
+    create_employee: "Employee added",
+    update_employee: "Employee details updated",
+    process_payroll: "Payroll processed",
+    payroll_approved: "Payroll approved",
+    payroll_locked: "Payroll locked",
+    issue_loan: "Loan issued",
+    initiate_fnf: "Full & final settlement initiated"
+  };
+
   const { data: netTotal } = currentHeader
     ? await supabase.from("payroll_details").select("net_salary").eq("payroll_header_id", currentHeader.id)
     : { data: [] };
@@ -149,28 +185,60 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4">
-        <Link href="/leave" className="bg-white border border-line rounded-xl p-4 flex items-center justify-between hover:border-accent/40 hover:shadow-lifted transition-all shadow-card">
-          <div>
-            <p className="text-sm text-ink">Pending leave</p>
-            <p className="text-xs text-ink/50">{pendingLeave ?? 0} request(s) awaiting decision</p>
+      <div className="grid grid-cols-3 gap-6">
+        <div className="col-span-2 bg-white border border-line rounded-xl shadow-card">
+          <p className="text-sm font-semibold text-ink px-5 pt-4 pb-1">My Tasks</p>
+          <div className="divide-y divide-line">
+            <Link href="/leave" className="flex items-center justify-between px-5 py-3 hover:bg-paper/60 transition-colors">
+              <div>
+                <p className="text-sm text-ink">Pending leave</p>
+                <p className="text-xs text-ink/50">{pendingLeave ?? 0} request(s) awaiting decision</p>
+              </div>
+              <ArrowRight size={15} className="text-ink/30" />
+            </Link>
+            <Link href="/reimbursements" className="flex items-center justify-between px-5 py-3 hover:bg-paper/60 transition-colors">
+              <div>
+                <p className="text-sm text-ink">Pending claims</p>
+                <p className="text-xs text-ink/50">{pendingClaims ?? 0} reimbursement claim(s)</p>
+              </div>
+              <ArrowRight size={15} className="text-ink/30" />
+            </Link>
+            <Link href="/helpdesk" className="flex items-center justify-between px-5 py-3 hover:bg-paper/60 transition-colors">
+              <div>
+                <p className="text-sm text-ink">Open tickets</p>
+                <p className="text-xs text-ink/50">{pendingTickets ?? 0} helpdesk ticket(s)</p>
+              </div>
+              <ArrowRight size={15} className="text-ink/30" />
+            </Link>
+            {(expiringDocs ?? []).map((d: any) => (
+              <Link key={d.id} href="/documents" className="flex items-center justify-between px-5 py-3 hover:bg-paper/60 transition-colors">
+                <div>
+                  <p className="text-sm text-ink">{d.doc_name}</p>
+                  <p className="text-xs text-caution-text">Expires {new Date(d.expiry_date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</p>
+                </div>
+                <ArrowRight size={15} className="text-ink/30" />
+              </Link>
+            ))}
+            {!pendingLeave && !pendingClaims && !pendingTickets && (expiringDocs ?? []).length === 0 && (
+              <p className="px-5 py-6 text-sm text-ink/40 text-center">Hurrah! Your task list is empty.</p>
+            )}
           </div>
-          <ArrowRight size={16} className="text-ink/30" />
-        </Link>
-        <Link href="/reimbursements" className="bg-white border border-line rounded-xl p-4 flex items-center justify-between hover:border-accent/40 hover:shadow-lifted transition-all shadow-card">
-          <div>
-            <p className="text-sm text-ink">Pending claims</p>
-            <p className="text-xs text-ink/50">{pendingClaims ?? 0} reimbursement claim(s)</p>
+        </div>
+
+        <div className="bg-white border border-line rounded-xl shadow-card">
+          <p className="text-sm font-semibold text-ink px-5 pt-4 pb-1">Latest Updates</p>
+          <div className="divide-y divide-line">
+            {(recentActivity ?? []).length === 0 && (
+              <p className="px-5 py-6 text-sm text-ink/40 text-center">No activity yet.</p>
+            )}
+            {(recentActivity ?? []).map((a: any, idx: number) => (
+              <div key={idx} className="px-5 py-3">
+                <p className="text-xs text-ink/40">{new Date(a.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</p>
+                <p className="text-sm text-ink">{a.new_value_json?.description ?? ACTION_LABELS[a.action] ?? a.action}</p>
+              </div>
+            ))}
           </div>
-          <ArrowRight size={16} className="text-ink/30" />
-        </Link>
-        <Link href="/helpdesk" className="bg-white border border-line rounded-xl p-4 flex items-center justify-between hover:border-accent/40 hover:shadow-lifted transition-all shadow-card">
-          <div>
-            <p className="text-sm text-ink">Open tickets</p>
-            <p className="text-xs text-ink/50">{pendingTickets ?? 0} helpdesk ticket(s)</p>
-          </div>
-          <ArrowRight size={16} className="text-ink/30" />
-        </Link>
+        </div>
       </div>
 
       {!currentHeader && companyId && (
