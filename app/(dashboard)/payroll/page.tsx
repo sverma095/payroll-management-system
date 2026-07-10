@@ -1,7 +1,7 @@
 import { resolvePeriod } from "@/lib/payroll-month";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
-import { processPayroll, approvePayroll, lockPayroll, runPrePayrollCheck } from "./actions";
+import { processPayroll, approvePayroll, lockPayroll, payoutPayroll, runPrePayrollCheck } from "./actions";
 import { StatusBadge } from "@/components/status-badge";
 import { Alert } from "@/components/alert";
 import Link from "next/link";
@@ -183,11 +183,31 @@ export default async function PayrollPage({
               </>
             )}
             {header.status === "locked" && (
+              <>
+                <form action={payoutPayroll}>
+                  <input type="hidden" name="header_id" value={header.id} />
+                  <input type="hidden" name="year" value={year} />
+                  <input type="hidden" name="month" value={month} />
+                  <button type="submit" className="rounded-lg bg-accent text-white text-sm font-medium px-4 py-2 hover:bg-accent/90 transition-colors">
+                    Mark as Paid (Payout)
+                  </button>
+                </form>
+                <a href={`/api/payroll/${header.id}/bank-file`} className="rounded-lg border border-line bg-white text-sm font-medium px-4 py-2 hover:bg-accentSoft transition-colors">
+                  Download bank file
+                </a>
+              </>
+            )}
+            {header.status === "paid" && (
               <a href={`/api/payroll/${header.id}/bank-file`} className="rounded-lg border border-line bg-white text-sm font-medium px-4 py-2 hover:bg-accentSoft transition-colors">
                 Download bank file
               </a>
             )}
           </div>
+          {header.status === "paid" && (header as any).paid_on && (
+            <p className="text-xs text-positive-text mb-4">
+              Paid out on {new Date((header as any).paid_on).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}. Published to employees' payslip pages.
+            </p>
+          )}
 
           <div className="bg-white border border-line rounded-xl overflow-hidden">
             <div className="overflow-x-auto">

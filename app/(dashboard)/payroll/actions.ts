@@ -116,3 +116,34 @@ export async function lockPayroll(formData: FormData) {
   await setPayrollStatus(headerId, "locked", `year=${year}&month=${month}`);
   redirect(`/payroll?year=${year}&month=${month}`);
 }
+
+export async function payoutPayroll(formData: FormData) {
+  const headerId = String(formData.get("header_id") ?? "");
+  const year = String(formData.get("year") ?? "");
+  const month = String(formData.get("month") ?? "");
+
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { tenantId } = await resolveCompanyId(supabase);
+
+  const { error } = await supabase
+    .from("payroll_headers")
+    .update({ status: "paid", paid_by: user?.id, paid_on: new Date().toISOString() })
+    .eq("id", headerId);
+
+  if (error) {
+    redirect(`/payroll?year=${year}&month=${month}&error=${encodeURIComponent(error.message)}`);
+  }
+
+  await supabase.from("audit_logs").insert({
+    user_id: user?.id,
+    tenant_id: tenantId,
+    module_name: "payroll_processing",
+    action: "payroll_paid",
+    old_value_json: null,
+    new_value_json: { headerId }
+  });
+
+  revalidatePath("/payroll");
+  redirect(`/payroll?year=${year}&month=${month}`);
+}

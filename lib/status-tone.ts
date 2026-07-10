@@ -17,6 +17,7 @@ const TONE_BY_STATUS: Record<string, StatusTone> = {
   processed: "positive",
   resolved: "positive",
   locked: "neutral",
+  paid: "positive",
   rejected: "critical",
   cancelled: "neutral",
   closed: "neutral",
