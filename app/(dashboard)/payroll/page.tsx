@@ -1,7 +1,7 @@
 import { resolvePeriod } from "@/lib/payroll-month";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCompanyId } from "@/lib/current-company";
-import { processPayroll, approvePayroll, lockPayroll, payoutPayroll, runPrePayrollCheck } from "./actions";
+import { processPayroll, approvePayroll, lockPayroll, payoutPayroll, runPrePayrollCheck, stopSalaryProcessing, resumeSalaryProcessing } from "./actions";
 import { StatusBadge } from "@/components/status-badge";
 import { Alert } from "@/components/alert";
 import Link from "next/link";
@@ -42,6 +42,21 @@ export default async function PayrollPage({
   const { data: header } = companyId
     ? await supabase.from("payroll_headers").select("*").eq("company_id", companyId).eq("year", year).eq("month", month).maybeSingle()
     : { data: null };
+
+  const [{ data: activeEmployees }, { data: exclusions }] = await Promise.all([
+    companyId
+      ? supabase.from("employees").select("id, employee_code, first_name, last_name").eq("company_id", companyId).eq("status", "active")
+      : Promise.resolve({ data: [] as any[] }),
+    companyId
+      ? supabase
+          .from("payroll_exclusions")
+          .select("id, employee_id, reason, employees!inner(employee_code, first_name, last_name, company_id)")
+          .eq("year", year)
+          .eq("month", month)
+          .eq("employees.company_id", companyId)
+      : Promise.resolve({ data: [] as any[] })
+  ]);
+  const excludedIds = new Set((exclusions ?? []).map((x: any) => x.employee_id));
 
   const { data: details } = header
     ? await supabase
@@ -153,6 +168,47 @@ export default async function PayrollPage({
           ✦ Run Pre-Payroll Check
         </button>
       </form>
+
+      {!header && (
+        <div className="bg-white border border-line rounded-xl p-5 mb-6">
+          <p className="text-sm font-semibold text-ink mb-1">Stop Salary Processing</p>
+          <p className="text-xs text-ink/50 mb-3">Exclude an employee from {MONTHS[month - 1]} {year}&apos;s run without changing their employee status.</p>
+
+          {(exclusions ?? []).length > 0 && (
+            <div className="mb-3 space-y-1">
+              {(exclusions ?? []).map((x: any) => (
+                <div key={x.id} className="flex items-center justify-between text-xs bg-caution-soft text-caution-text rounded-lg px-3 py-1.5">
+                  <span>
+                    {x.employees?.employee_code} — {x.employees?.first_name} {x.employees?.last_name ?? ""}
+                    {x.reason && ` (${x.reason})`}
+                  </span>
+                  <form action={resumeSalaryProcessing}>
+                    <input type="hidden" name="id" value={x.id} />
+                    <input type="hidden" name="year" value={year} />
+                    <input type="hidden" name="month" value={month} />
+                    <button className="hover:underline">Resume</button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <form action={stopSalaryProcessing} className="flex gap-2 items-end">
+            <input type="hidden" name="year" value={year} />
+            <input type="hidden" name="month" value={month} />
+            <select name="employee_id" required className="rounded-lg border border-line px-2.5 py-1.5 text-xs bg-white">
+              <option value="">Select employee</option>
+              {(activeEmployees ?? []).filter((e: any) => !excludedIds.has(e.id)).map((e: any) => (
+                <option key={e.id} value={e.id}>{e.employee_code} — {e.first_name} {e.last_name ?? ""}</option>
+              ))}
+            </select>
+            <input name="reason" placeholder="Reason (optional)" className="rounded-lg border border-line px-2.5 py-1.5 text-xs" />
+            <button type="submit" className="rounded-lg border border-line bg-white text-xs font-medium px-3 py-1.5 hover:bg-accentSoft transition-colors">
+              Stop processing
+            </button>
+          </form>
+        </div>
+      )}
 
       {header && (
         <>

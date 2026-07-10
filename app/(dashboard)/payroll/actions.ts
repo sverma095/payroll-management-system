@@ -147,3 +147,30 @@ export async function payoutPayroll(formData: FormData) {
   revalidatePath("/payroll");
   redirect(`/payroll?year=${year}&month=${month}`);
 }
+
+export async function stopSalaryProcessing(formData: FormData) {
+  const employeeId = String(formData.get("employee_id") ?? "");
+  const year = Number(formData.get("year"));
+  const month = Number(formData.get("month"));
+  const reason = String(formData.get("reason") ?? "") || null;
+
+  const supabase = createClient();
+  const { error } = await supabase.from("payroll_exclusions").insert({ employee_id: employeeId, year, month, reason });
+  if (error) {
+    redirect(`/payroll?year=${year}&month=${month}&error=${encodeURIComponent(error.message)}`);
+  }
+  revalidatePath("/payroll");
+}
+
+export async function resumeSalaryProcessing(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const year = String(formData.get("year") ?? "");
+  const month = String(formData.get("month") ?? "");
+
+  const supabase = createClient();
+  const { error } = await supabase.from("payroll_exclusions").delete().eq("id", id);
+  if (error) {
+    redirect(`/payroll?year=${year}&month=${month}&error=${encodeURIComponent(error.message)}`);
+  }
+  revalidatePath("/payroll");
+}

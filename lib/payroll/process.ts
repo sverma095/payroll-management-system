@@ -86,7 +86,20 @@ export async function checkPayrollReadiness(
     return { employeeCount: 0, blocking: [{ employeeId: "", employeeCode: "", message: "No active employees" }], warnings: [] };
   }
 
-  const employeeIds = employees.map((e) => e.id);
+  const { data: exclusions } = await supabase
+    .from("payroll_exclusions")
+    .select("employee_id")
+    .eq("year", year)
+    .eq("month", month)
+    .in("employee_id", employees.map((e) => e.id));
+  const excludedIds = new Set((exclusions ?? []).map((x) => x.employee_id));
+  const includedEmployees = employees.filter((e) => !excludedIds.has(e.id));
+
+  if (includedEmployees.length === 0) {
+    return { employeeCount: 0, blocking: [{ employeeId: "", employeeCode: "", message: "All active employees are excluded from this month's run" }], warnings: [] };
+  }
+
+  const employeeIds = includedEmployees.map((e) => e.id);
 
   const { data: banks } = await supabase
     .from("employee_banks")
@@ -106,8 +119,8 @@ export async function checkPayrollReadiness(
 
   const assignmentByEmployee = new Map(assignments?.map((a) => [a.employee_id, a]) ?? []);
 
-  const { blocking, warnings } = validateEmployees(employees, bankByEmployee, assignmentByEmployee);
-  return { employeeCount: employees.length, blocking, warnings };
+  const { blocking, warnings } = validateEmployees(includedEmployees, bankByEmployee, assignmentByEmployee);
+  return { employeeCount: includedEmployees.length, blocking, warnings };
 }
 
 export async function runPayroll(
@@ -127,7 +140,20 @@ export async function runPayroll(
     return { ok: false, issues: [{ employeeId: "", employeeCode: "", message: "No active employees" }], processedCount: 0, headerId: null };
   }
 
-  const employeeIds = employees.map((e) => e.id);
+  const { data: exclusions } = await supabase
+    .from("payroll_exclusions")
+    .select("employee_id")
+    .eq("year", year)
+    .eq("month", month)
+    .in("employee_id", employees.map((e) => e.id));
+  const excludedIds = new Set((exclusions ?? []).map((x) => x.employee_id));
+  const includedEmployees = employees.filter((e) => !excludedIds.has(e.id));
+
+  if (includedEmployees.length === 0) {
+    return { ok: false, issues: [{ employeeId: "", employeeCode: "", message: "All active employees are excluded from this month's run" }], processedCount: 0, headerId: null };
+  }
+
+  const employeeIds = includedEmployees.map((e) => e.id);
 
   const { data: banks } = await supabase
     .from("employee_banks")
@@ -147,7 +173,7 @@ export async function runPayroll(
 
   const assignmentByEmployee = new Map(assignments?.map((a) => [a.employee_id, a]) ?? []);
 
-  const { blocking, warnings } = validateEmployees(employees, bankByEmployee, assignmentByEmployee);
+  const { blocking, warnings } = validateEmployees(includedEmployees, bankByEmployee, assignmentByEmployee);
   if (blocking.length > 0) {
     return { ok: false, issues: [...blocking, ...warnings], processedCount: 0, headerId: null };
   }
@@ -240,7 +266,7 @@ export async function runPayroll(
   const variablePayPaid: string[] = [];
   const claimsPaid: string[] = [];
 
-  for (const e of employees) {
+  for (const e of includedEmployees) {
     const assignment = assignmentByEmployee.get(e.id) as any;
     const components: { code: string; name: string; formula: string; type: string }[] = detailsByStructure.get(assignment.salary_structure_id) ?? [];
     const attendance = attendanceByEmployee.get(e.id);
